@@ -174,8 +174,8 @@ export default function Home() {
   setRegion(id);
   setChosen(null);
   setDetails(false);
-  setProgress(0);
   setError('');
+  if (!showScene) setProgress(0);
   setState(s => ({
    ...s,
    selected: [],

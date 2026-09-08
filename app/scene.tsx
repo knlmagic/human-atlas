@@ -191,11 +191,14 @@ export default function AnatomyScene({atlas,state,onSelect,onProgress,onError}:P
    camera.position.copy(center).addScaledVector(viewDirection(view),distance);
    controls.update();dirty=true;
   };
-  const clock=new T.Clock();let lastExtent=-1;
+  const clock=new T.Clock();let lastExtent=-1,lastNeededKey='';
   const animate=()=>{
    if(disposed)return;frame=requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05),s=latest.current;
    const changed=lastState?.visible!==s.visible||lastState?.selected!==s.selected||lastState?.isolate!==s.isolate||lastState?.ghost!==s.ghost||lastState?.layer!==s.layer||lastState?.visibleIds!==s.visibleIds;
-   if(neededChunks().some(index=>!loadedChunks.has(index)))void pump();
+   const needed=neededChunks();
+   const neededKey=needed.join(',');
+   if(needed.some(index=>!loadedChunks.has(index)))void pump();
+   else if(neededKey!==lastNeededKey){lastNeededKey=neededKey;onProgress(100);}
    const moving=Math.abs(amount-s.explode)>.0001;
    if(moving){amount=T.MathUtils.damp(amount,s.explode,8,dt);dirty=true;}
    if(changed||moving||lastExtent<0){
