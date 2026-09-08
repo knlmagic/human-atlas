@@ -34,6 +34,7 @@ export interface SceneState {
  rotate:boolean;
  reset:number;
  frame:number;
+ preserveView?:boolean;
 }
 export const DEFAULT_VISIBLE:SystemId[] = ['skeletal','muscular','connective'];
 export const EXPLANATIONS:Record<string,string> = {

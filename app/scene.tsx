@@ -199,18 +199,29 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
    return 1;
   };
   const viewDirection=(view:string)=>view==='front'?new T.Vector3(0,.02,1):view==='back'?new T.Vector3(0,.02,-1):view==='side'?new T.Vector3(1,.02,0):new T.Vector3(.35,.06,1).normalize();
-  const fitToParts=(ids:string[],view:string)=>{
+  const currentDirection=()=>{
+   const direction=camera.position.clone().sub(controls.target);
+   if(direction.lengthSq()<1e-8)return viewDirection(latest.current.view);
+   return direction.normalize();
+  };
+  const fitToParts=(ids:string[],view:string|null)=>{
    const box=new T.Box3();
    atlas.parts.forEach((p,i)=>{if(ids.includes(p.id))box.union(bounds[i]);});
-   if(box.isEmpty()){fit(view,amount);return;}
+   if(box.isEmpty()){if(view)fit(view,amount);return;}
    const center=box.getCenter(new T.Vector3()),size=box.getSize(new T.Vector3());
    const mobile=el.clientWidth<768;
    const distance=Math.max(mobile?1.15:.75,Math.max(size.y,size.x/Math.max(.35,camera.aspect),size.z)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*(mobile?2.4:1.85));
    camera.clearViewOffset();
    controls.maxDistance=Math.max(40,distance*2);
    controls.target.copy(center);
-   camera.position.copy(center).addScaledVector(viewDirection(view),distance);
+   camera.position.copy(center).addScaledVector(view?viewDirection(view):currentDirection(),distance);
    controls.update();dirty=true;
+  };
+  const refit=(s:SceneState)=>{
+   const named=s.preserveView?null:s.view;
+   if(s.selected.length)fitToParts(s.selected,named);
+   else if(s.visibleIds?.length)fitToParts(s.visibleIds,named);
+   else if(named)fit(named,amount);
   };
   const clock=new T.Clock();let lastExtent=-1,lastNeededKey='';
   const animate=()=>{
@@ -242,26 +253,20 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
     });partTexture.needsUpdate=true;selectionTexture.needsUpdate=true;markerGeometry.attributes.position.needsUpdate=true;lastState=s;lastExtent=amount;dirty=true;
    }
    if(s.frame!==lastFrame){
-    if(s.selected.length)fitToParts(s.selected,s.view);
-    else if(s.visibleIds?.length)fitToParts(s.visibleIds,s.view);
-    else fit(s.view,amount);
+    refit(s);
     lastFrame=s.frame;lastView=s.view;lastReset=s.reset;
    }else if(s.view!==lastView||s.reset!==lastReset){
-    if(s.selected.length)fitToParts(s.selected,s.view);
-    else if(s.visibleIds?.length)fitToParts(s.visibleIds,s.view);
-    else fit(s.view,amount);
+    refit(s);
     lastView=s.view;lastReset=s.reset;
    }
    if(moving&&!s.isolate)fit(amount>.5?'front':s.view,Math.max(0,(amount-.3)/.7));
    const isolateKey=s.isolate?s.selected.join(',')+':'+s.reset+':'+s.inspectorOpen+':'+camera.aspect:'';
    if(isolateKey!==lastIsolate||(s.isolate&&moving)){
     if(s.isolate){const box=new T.Box3();atlas.parts.forEach((p,i)=>{if(s.selected.includes(p.id))box.union(bounds[i].clone().translate(new T.Vector3(data[i*4],data[i*4+1],data[i*4+2])));});
-     if(!box.isEmpty()){const center=box.getCenter(new T.Vector3()),size=box.getSize(new T.Vector3());const w=el.clientWidth,h=el.clientHeight,mobile=w<768,landscape=w>h&&h<=600;let left=20,right=w-20,top=mobile?175:110,bottom=h-170;if(s.inspectorOpen){if(landscape){right=w-335;top=100;bottom=h-125;}else if(mobile){const sheet=document.querySelector('.detail-sheet')?.getBoundingClientRect(),header=document.querySelector('.identity')?.getBoundingClientRect();top=(header?.bottom??94)+16;bottom=(sheet?.top??h*.58-139)-16;}else{right=w-370;left=w>1100?285:25;}}const availableWidth=Math.max(150,right-left),availableHeight=Math.max(40,bottom-top);camera.setViewOffset(w,h,w/2-(left+right)/2,h/2-(top+bottom)/2,w,h);const distance=Math.max(.07,Math.max(size.y*h/availableHeight,size.x*w/availableWidth/camera.aspect,size.z)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*1.35);controls.maxDistance=Math.max(40,distance*2);controls.target.copy(center);camera.position.copy(center).add(new T.Vector3(.2,.1,1).normalize().multiplyScalar(distance));controls.update();dirty=true;}
+     if(!box.isEmpty()){const center=box.getCenter(new T.Vector3()),size=box.getSize(new T.Vector3());const w=el.clientWidth,h=el.clientHeight,mobile=w<768,landscape=w>h&&h<=600;let left=20,right=w-20,top=mobile?175:110,bottom=h-170;if(s.inspectorOpen){if(landscape){right=w-335;top=100;bottom=h-125;}else if(mobile){const sheet=document.querySelector('.detail-sheet')?.getBoundingClientRect(),header=document.querySelector('.identity')?.getBoundingClientRect();top=(header?.bottom??94)+16;bottom=(sheet?.top??h*.58-139)-16;}else{right=w-370;left=w>1100?285:25;}}const availableWidth=Math.max(150,right-left),availableHeight=Math.max(40,bottom-top);camera.setViewOffset(w,h,w/2-(left+right)/2,h/2-(top+bottom)/2,w,h);const distance=Math.max(.07,Math.max(size.y*h/availableHeight,size.x*w/availableWidth/camera.aspect,size.z)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*1.35);controls.maxDistance=Math.max(40,distance*2);controls.target.copy(center);camera.position.copy(center).addScaledVector(currentDirection(),distance);controls.update();dirty=true;}
     }else if(lastIsolate){
      camera.clearViewOffset();
-     if(s.selected.length)fitToParts(s.selected,s.view);
-     else if(s.visibleIds?.length)fitToParts(s.visibleIds,s.view);
-     else fit(s.view,amount);
+     refit({...s,preserveView:true});
     }
     lastIsolate=isolateKey;
    }

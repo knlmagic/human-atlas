@@ -110,7 +110,6 @@ export default function Home() {
   if (!atlas) return;
   const elements = ids?.length ? ids : partsForLesson(atlas, next);
   if (!elements.length) return;
-  const area = REGIONS.find(item => item.id === next.region);
   setStarted(true);
   setRegion(next.region);
   setChosen({id: next.id, name: next.title, elements});
@@ -121,7 +120,7 @@ export default function Home() {
    ghost: true,
    rotate: false,
    visibleIds: partsInRegion(atlas, next.region),
-   view: area?.view ?? s.view,
+   preserveView: true,
    frame: s.frame + 1,
   }));
   setDetails(true);
@@ -135,7 +134,7 @@ export default function Home() {
    return;
   }
   setChosen({...c, name: displayName(c.name)});
-  setState(s => ({...s, selected: c.elements, isolate: false, ghost: true, rotate: false, frame: s.frame + 1}));
+  setState(s => ({...s, selected: c.elements, isolate: false, ghost: true, rotate: false, preserveView: true, frame: s.frame + 1}));
   setDetails(true);
   setPanel(null);
  };
@@ -154,7 +153,7 @@ export default function Home() {
    return;
   }
   setChosen({id: part.conceptId, name: displayName(part.name), elements: [id]});
-  setState(s => ({...s, selected: [id], isolate: false, ghost: true, rotate: false, frame: s.frame + 1}));
+  setState(s => ({...s, selected: [id], isolate: false, ghost: true, rotate: false, preserveView: true, frame: s.frame + 1}));
   setDetails(true);
   setPanel(null);
  };
@@ -184,6 +183,7 @@ export default function Home() {
    visibleIds: id && atlas ? partsInRegion(atlas, id) : null,
    view: next?.view ?? 'three-quarter',
    rotate: false,
+   preserveView: false,
    frame: s.frame + 1,
   }));
  };
@@ -297,7 +297,7 @@ export default function Home() {
       key={v}
       className={state.view === v ? 'active' : ''}
       aria-pressed={state.view === v}
-      onClick={() => setState(s => ({...s, view: v, rotate: false, frame: s.frame + 1}))}
+      onClick={() => setState(s => ({...s, view: v, rotate: false, preserveView: false, frame: s.frame + 1}))}
       title={`${v} view`}
       aria-label={`${v} view`}
      >
