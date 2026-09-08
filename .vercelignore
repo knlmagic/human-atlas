@@ -1,0 +1,2 @@
+# Uncompressed mesh files are large. The app loads the .gz copies.
+public/models/*.bin
