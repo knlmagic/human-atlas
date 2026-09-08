@@ -94,14 +94,16 @@ export default function AnatomyScene({atlas,state,onSelect,onProgress,onError}:P
      }
      await Promise.all(missing.map(async index=>{
       inFlight.add(index);
-      await loadChunk(index);
-      inFlight.delete(index);
-      loadedChunks.add(index);
+      try{
+       await loadChunk(index);
+       loadedChunks.add(index);
+      }finally{
+       inFlight.delete(index);
+      }
+      const still=neededChunks();
+      const done=still.filter(item=>loadedChunks.has(item)).length;
+      onProgress(still.length?Math.max(1,Math.round(done/still.length*100)):100);
      }));
-     const still=neededChunks();
-     const done=still.filter(index=>loadedChunks.has(index)).length;
-     onProgress(still.length?Math.round(done/still.length*100):100);
-     ready=still.every(index=>loadedChunks.has(index));
     }
    }catch(e){if(!disposed)onError(e instanceof Error?e.message:'Could not load the anatomy.');}
    pumping=false;

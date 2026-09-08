@@ -55,7 +55,7 @@ export default function Home() {
  const [started, setStarted] = useState(false);
  const [boot, setBoot] = useState(false);
  const isMobile = useIsMobile();
- const phone = boot && typeof window !== 'undefined' && window.innerWidth < 768;
+ const phone = boot && isMobile;
  const waiting = phone && !started;
 
  useEffect(() => {
@@ -403,7 +403,7 @@ export default function Home() {
      </div>
     </SheetContent>
    </Sheet>
-   <InstallCoach ready={boot && !waiting} />
+   <InstallCoach ready={boot && !waiting && progress >= 100} />
   </main>
  );
 }
