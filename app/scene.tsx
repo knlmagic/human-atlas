@@ -49,32 +49,35 @@ export default function AnatomyScene({atlas,state,onSelect,onProgress,onError}:P
    return best;
   };
   const materialFor=(system:string)=>{
-   const form=system==='muscular'||system==='connective'?1:system==='skeletal'?0.35:0;
-   const m=new T.MeshStandardMaterial({color:SYSTEMS.find(s=>s.id===system)?.color??'#aebbb8',metalness:form>.5?.04:.1,roughness:form>.5?.46:.62,side:T.DoubleSide,transparent:true,opacity:system==='integumentary'?.1:1,depthWrite:system!=='integumentary'});
+   const form=system==='muscular'||system==='connective'?1:system==='skeletal'?0.4:0;
+   const m=new T.MeshStandardMaterial({color:SYSTEMS.find(s=>s.id===system)?.color??'#aebbb8',metalness:form>.5?.03:.1,roughness:form>.5?.42:.62,side:T.DoubleSide,transparent:true,opacity:system==='integumentary'?.1:1,depthWrite:system!=='integumentary'});
    m.onBeforeCompile=shader=>{
     shader.uniforms.partState={value:partTexture};shader.uniforms.selectionState={value:selectionTexture};shader.uniforms.stateWidth={value:width};shader.uniforms.atlasForm={value:form};
-    shader.vertexShader='attribute float partIndex; uniform sampler2D partState; uniform sampler2D selectionState; uniform float stateWidth; varying float partVisible; varying float partSelected; varying float vPartIndex; varying vec3 vEyeNormal; varying vec3 vViewPos;\n'+shader.vertexShader;
-    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec2 stateUv = vec2((partIndex + 0.5) / stateWidth, 0.5); vec4 state = texture2D(partState, stateUv); transformed += state.xyz; partVisible = state.w; partSelected = texture2D(selectionState, stateUv).r; vPartIndex = partIndex;');
+    shader.vertexShader='attribute float partIndex; uniform sampler2D partState; uniform sampler2D selectionState; uniform float stateWidth; varying float partVisible; varying float partSelected; varying vec3 vEyeNormal; varying vec3 vViewPos;\n'+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec2 stateUv = vec2((partIndex + 0.5) / stateWidth, 0.5); vec4 state = texture2D(partState, stateUv); transformed += state.xyz; partVisible = state.w; partSelected = texture2D(selectionState, stateUv).r;');
     shader.vertexShader=shader.vertexShader.replace('#include <defaultnormal_vertex>','#include <defaultnormal_vertex>\nvEyeNormal = normalize(transformedNormal);');
     shader.vertexShader=shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvViewPos = mvPosition.xyz;');
-    shader.fragmentShader='varying float partVisible; varying float partSelected; varying float vPartIndex; varying vec3 vEyeNormal; varying vec3 vViewPos; uniform float atlasForm;\n'+shader.fragmentShader;
+    shader.fragmentShader='varying float partVisible; varying float partSelected; varying vec3 vEyeNormal; varying vec3 vViewPos; uniform float atlasForm;\n'+shader.fragmentShader;
     shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nif (partVisible < 0.02) discard;');
     shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
 float ndv = abs(dot(normalize(vEyeNormal), normalize(-vViewPos)));
-float rim = pow(clamp(1.0 - ndv, 0.0, 1.0), 2.15);
-float hash = fract(vPartIndex * 0.6180339887);
-vec3 neighborTint = vec3(0.10 * sin(hash * 6.2831), 0.07 * cos(hash * 4.882), -0.08 * sin(hash * 5.498));
-float fiber = 0.5 + 0.5 * sin((vViewPos.x * 36.0 + vViewPos.y * 14.0 + hash * 8.0));
-diffuseColor.rgb += neighborTint * atlasForm * (1.0 - partSelected);
-diffuseColor.rgb *= mix(1.0, mix(0.78, 1.06, ndv), atlasForm);
-diffuseColor.rgb *= mix(1.0, mix(0.90, 1.04, fiber), atlasForm * 0.55 * (1.0 - partSelected * 0.35));
-diffuseColor.rgb += vec3(0.12, 0.07, 0.05) * rim * atlasForm * (1.0 - partSelected);
-diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.16, 0.58, 0.54), partSelected * 0.52);
-diffuseColor.rgb += vec3(0.08, 0.34, 0.32) * rim * partSelected;
-diffuseColor.a = mix(diffuseColor.a * partVisible, 1.0, partSelected);`);
+float rim = pow(clamp(1.0 - ndv, 0.0, 1.0), 2.6);
+diffuseColor.rgb *= mix(1.0, mix(0.70, 1.10, ndv), atlasForm);
+diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.72, 0.28, 0.24), partSelected * 0.28);
+diffuseColor.rgb += vec3(0.22, 0.08, 0.05) * rim * partSelected;
+diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
    };materials.push(m);return m;
   };
   const mats=new Map(SYSTEMS.map(s=>[s.id,materialFor(s.id)]));
+  const outlineMat=new T.MeshBasicMaterial({color:0x1a2228,side:T.BackSide,depthWrite:false});
+  outlineMat.onBeforeCompile=shader=>{
+   shader.uniforms.partState={value:partTexture};shader.uniforms.selectionState={value:selectionTexture};shader.uniforms.stateWidth={value:width};
+   shader.vertexShader='attribute float partIndex; uniform sampler2D partState; uniform sampler2D selectionState; uniform float stateWidth; varying float partSelected;\n'+shader.vertexShader;
+   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec2 stateUv = vec2((partIndex + 0.5) / stateWidth, 0.5); vec4 state = texture2D(partState, stateUv); partSelected = texture2D(selectionState, stateUv).r; transformed += state.xyz; transformed += objectNormal * (0.01 * partSelected);');
+   shader.fragmentShader='varying float partSelected;\n'+shader.fragmentShader;
+   shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nif (partSelected < 0.5) discard;');
+  };
+  materials.push(outlineMat);
   const loadedChunks=new Set<number>(),inFlight=new Set<number>();
   let pumping=false;
   const neededChunks=()=> {
@@ -94,7 +97,7 @@ diffuseColor.a = mix(diffuseColor.a * partVisible, 1.0, partSelected);`);
     g.setAttribute('partIndex',new T.BufferAttribute(new Float32Array(p.vertexCount).fill(i),1));
     const list=groups.get(p.system)??[];list.push(g);groups.set(p.system,list);
    });
-   groups.forEach((gs,system)=>{const geometry=mergeGeometries(gs,false);if(!geometry)throw new Error('Could not assemble anatomy geometry.');geometries.push(geometry);const mesh=new T.Mesh(geometry,mats.get(system as never));mesh.frustumCulled=false;scene.add(mesh);});
+   groups.forEach((gs,system)=>{const geometry=mergeGeometries(gs,false);if(!geometry)throw new Error('Could not assemble anatomy geometry.');geometries.push(geometry);const mesh=new T.Mesh(geometry,mats.get(system as never));mesh.frustumCulled=false;scene.add(mesh);if(system==='muscular'||system==='connective'){const outline=new T.Mesh(geometry,outlineMat);outline.frustumCulled=false;outline.renderOrder=4;scene.add(outline);}});
    lastState=null;dirty=true;
   };
   const pump=async()=>{
@@ -191,8 +194,8 @@ diffuseColor.a = mix(diffuseColor.a * partVisible, 1.0, partSelected);`);
     if(bone)return 1;
     return muscle?0.2:0;
    }
-   if(s.isolate)return selected?1:s.ghost&&(muscle||bone)?0.07:0;
-   if(s.ghost&&s.selected.length&&!selected)return muscle?0.1:bone?0.28:0;
+   if(s.isolate)return selected?1:s.ghost&&(muscle||bone)?0.04:0;
+   if(s.ghost&&s.selected.length&&!selected)return muscle?0.055:bone?0.2:0;
    return 1;
   };
   const viewDirection=(view:string)=>view==='front'?new T.Vector3(0,.02,1):view==='back'?new T.Vector3(0,.02,-1):view==='side'?new T.Vector3(1,.02,0):new T.Vector3(.35,.06,1).normalize();
