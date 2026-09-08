@@ -169,6 +169,7 @@ export default function Home() {
    return;
   }
   const next = REGIONS.find(item => item.id === id);
+  const keep = showScene;
   setStarted(true);
   setRegion(id);
   setChosen(null);
@@ -181,9 +182,9 @@ export default function Home() {
    isolate: false,
    ghost: false,
    visibleIds: id && atlas ? partsInRegion(atlas, id) : null,
-   view: next?.view ?? 'three-quarter',
+   view: keep ? s.view : (next?.view ?? 'three-quarter'),
    rotate: false,
-   preserveView: false,
+   preserveView: keep,
    frame: s.frame + 1,
   }));
  };
