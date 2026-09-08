@@ -121,7 +121,6 @@ export default function Home() {
    rotate: false,
    visibleIds: partsInRegion(atlas, next.region),
    preserveView: true,
-   frame: s.frame + 1,
   }));
   setDetails(true);
   setPanel(null);
@@ -134,7 +133,7 @@ export default function Home() {
    return;
   }
   setChosen({...c, name: displayName(c.name)});
-  setState(s => ({...s, selected: c.elements, isolate: false, ghost: true, rotate: false, preserveView: true, frame: s.frame + 1}));
+  setState(s => ({...s, selected: c.elements, isolate: false, ghost: true, rotate: false, preserveView: true}));
   setDetails(true);
   setPanel(null);
  };
@@ -153,7 +152,7 @@ export default function Home() {
    return;
   }
   setChosen({id: part.conceptId, name: displayName(part.name), elements: [id]});
-  setState(s => ({...s, selected: [id], isolate: false, ghost: true, rotate: false, preserveView: true, frame: s.frame + 1}));
+  setState(s => ({...s, selected: [id], isolate: false, ghost: true, rotate: false, preserveView: true}));
   setDetails(true);
   setPanel(null);
  };
