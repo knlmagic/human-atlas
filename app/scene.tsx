@@ -8,12 +8,13 @@ import {decodeModelResponse} from './model-download';
 import {PointerTap} from './pointer-tap';
 import {SYSTEMS,type Atlas,type Part,type SceneState} from './anatomy';
 import {displayName,isTrainingBone,isTrainingMuscle} from './training';
+import {cameraAim,frameKind,framePadding,frameSpan,idsToFrame,minFrameDistance} from './studio';
 interface Props {atlas:Atlas;state:SceneState;onSelect:(id:string)=>void;onProgress:(n:number)=>void;onError:(s:string)=>void}
 export default function AnatomyScene({atlas,state,onSelect,onProgress,onError}:Props){
  const host=useRef<HTMLDivElement>(null),latest=useRef(state),select=useRef(onSelect);
  latest.current=state;select.current=onSelect;
  useEffect(()=>{
-  const el=host.current!;let disposed=false,frame=0,dirty=true,ready=false,lastView='',lastReset=-1,lastIsolate='',lastFrame=-1,layoutKey='',amount=0;
+  const el=host.current!;let disposed=false,frame=0,dirty=true,ready=false,lastView='',lastReset=-1,lastIsolate='',lastDock='',lastFrame=-1,layoutKey='',amount=0;
   let lastState:SceneState|null=null;
   const abort=new AbortController();
   let renderer:T.WebGLRenderer;
@@ -21,7 +22,7 @@ export default function AnatomyScene({atlas,state,onSelect,onProgress,onError}:P
   renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<768?1.5:2));renderer.setClearColor('#f2f3f3');renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;el.appendChild(renderer.domElement);
   renderer.domElement.setAttribute('aria-label','Massage practice. Drag to turn, pinch or scroll to zoom, and tap a muscle to learn it.');
   const scene=new T.Scene(),camera=new T.PerspectiveCamera(34,1,.005,100),controls=new OrbitControls(camera,renderer.domElement);
-  camera.position.set(1.4,1.05,3.6);controls.target.set(0,.85,0);controls.enableDamping=true;controls.dampingFactor=.085;controls.minDistance=.07;controls.maxDistance=40;controls.maxPolarAngle=Math.PI*.96;controls.addEventListener('change',()=>{dirty=true;});
+  camera.position.set(1.4,1.05,3.6);controls.target.set(0,.85,0);controls.enableDamping=true;controls.dampingFactor=.085;controls.minDistance=.07;controls.maxDistance=40;controls.maxPolarAngle=Math.PI*.96;controls.zoomToCursor=true;controls.addEventListener('change',()=>{dirty=true;});
   const pmrem=new T.PMREMGenerator(renderer),room=new RoomEnvironment(),env=pmrem.fromScene(room,.04);scene.environment=env.texture;room.dispose();pmrem.dispose();
   scene.add(new T.HemisphereLight(0xfff4ea,0x7d8894,0.82));
   const key=new T.DirectionalLight(0xfff6ea,2.7);key.position.set(-2.2,4.2,3.1);scene.add(key);
@@ -73,7 +74,7 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
   outlineMat.onBeforeCompile=shader=>{
    shader.uniforms.partState={value:partTexture};shader.uniforms.selectionState={value:selectionTexture};shader.uniforms.stateWidth={value:width};
    shader.vertexShader='attribute float partIndex; uniform sampler2D partState; uniform sampler2D selectionState; uniform float stateWidth; varying float partSelected;\n'+shader.vertexShader;
-   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec2 stateUv = vec2((partIndex + 0.5) / stateWidth, 0.5); vec4 state = texture2D(partState, stateUv); partSelected = texture2D(selectionState, stateUv).r; transformed += state.xyz; transformed += objectNormal * (0.01 * partSelected);');
+   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec2 stateUv = vec2((partIndex + 0.5) / stateWidth, 0.5); vec4 state = texture2D(partState, stateUv); partSelected = texture2D(selectionState, stateUv).r; transformed += state.xyz; transformed += normal * (0.01 * partSelected);');
    shader.fragmentShader='varying float partSelected;\n'+shader.fragmentShader;
    shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nif (partSelected < 0.5) discard;');
   };
@@ -133,11 +134,52 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
    const aspect=camera.aspect,mobile=el.clientWidth<768,normalDistance=mobile?Math.max(4.5,1.8*el.clientHeight/Math.max(160,el.clientHeight-350)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))):4;
    const reservedHeight=mobile?350:270;const availableAspect=Math.max(.35,(el.clientWidth-(mobile?40:340))/Math.max(160,el.clientHeight-reservedHeight));const atlasDistance=Math.max(packingHeight,packingWidth/availableAspect)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*(el.clientHeight/Math.max(160,el.clientHeight-reservedHeight))*1.08;
    const distance=T.MathUtils.lerp(normalDistance,Math.max(.2,atlasDistance),extent);if(extent>.8)view='front';
-   const direction=view==='front'?new T.Vector3(0,.02,1):view==='back'?new T.Vector3(0,.02,-1):view==='side'?new T.Vector3(1,.02,0):new T.Vector3(.35,.06,1).normalize();
+   const direction=new T.Vector3(...cameraAim(view)).normalize();
    controls.target.set(extent>.1&&el.clientWidth>767?-packingWidth*.12:0,extent>.1||mobile?.85:.68,0);camera.position.copy(controls.target).addScaledVector(direction,distance);controls.update();dirty=true;
   };
   const resize=()=>{layoutKey='';lastState=null;renderer.setPixelRatio(Math.min(devicePixelRatio,el.clientWidth<768||el.clientHeight<600?1.5:2));camera.aspect=el.clientWidth/el.clientHeight;camera.updateProjectionMatrix();renderer.setSize(el.clientWidth,el.clientHeight);dirty=true;};const observer=new ResizeObserver(resize);observer.observe(el);
   const raycaster=new T.Raycaster(),pointer=new T.Vector2(),tap=new PointerTap(),worldBox=new T.Box3(),hitPoint=new T.Vector3();
+  const activePointers=new Map<number,{x:number;y:number}>(),pinchFocus=new T.Vector3(),pinchNow=new T.Vector3(),focusDir=new T.Vector3(),focusPlane=new T.Plane();
+  let pinchLocked=false;
+  const worldUnderCursor=(cx:number,cy:number,out:T.Vector3)=>{
+   const rect=renderer.domElement.getBoundingClientRect(),w=rect.width,h=rect.height;
+   if(w<1||h<1)return false;
+   pointer.set((cx-rect.left)/w*2-1,-(cy-rect.top)/h*2+1);
+   raycaster.setFromCamera(pointer,camera);
+   let nearest=Infinity,hit=false;
+   const hasSolid=atlas.parts.some((p,i)=>p.system!=='integumentary'&&data[i*4+3]>.5);
+   pickers.forEach((mesh,i)=>{
+    if(!mesh||data[i*4+3]<.02||(hasSolid&&atlas.parts[i].system==='integumentary'))return;
+    worldBox.copy(bounds[i]).translate(mesh.position);
+    if(!raycaster.ray.intersectBox(worldBox,hitPoint))return;
+    const hits=raycaster.intersectObject(mesh,false);
+    if(hits[0]&&hits[0].distance<nearest){nearest=hits[0].distance;out.copy(hits[0].point);hit=true;}
+   });
+   if(hit)return true;
+   camera.getWorldDirection(focusDir);
+   focusPlane.setFromNormalAndCoplanarPoint(focusDir,controls.target);
+   return raycaster.ray.intersectPlane(focusPlane,out)!==null;
+  };
+  const pinchMid=()=>{
+   if(activePointers.size<2)return null;
+   const pts=Array.from(activePointers.values());
+   return {x:(pts[0].x+pts[1].x)*.5,y:(pts[0].y+pts[1].y)*.5};
+  };
+  const rememberPinch=()=>{
+   const mid=pinchMid();
+   pinchLocked=!!mid&&worldUnderCursor(mid.x,mid.y,pinchFocus);
+  };
+  const applyPinchFocus=()=>{
+   if(!pinchLocked)return;
+   const mid=pinchMid();
+   if(!mid||!worldUnderCursor(mid.x,mid.y,pinchNow))return;
+   const dx=pinchFocus.x-pinchNow.x,dy=pinchFocus.y-pinchNow.y,dz=pinchFocus.z-pinchNow.z;
+   if(dx*dx+dy*dy+dz*dz<1e-14)return;
+   camera.position.x+=dx;camera.position.y+=dy;camera.position.z+=dz;
+   controls.target.x+=dx;controls.target.y+=dy;controls.target.z+=dz;
+   dirty=true;
+  };
+  controls.addEventListener('change',applyPinchFocus);
   const pickAt=(cx:number,cy:number)=>{
    const rect=renderer.domElement.getBoundingClientRect();
    pointer.set((cx-rect.left)/rect.width*2-1,-(cy-rect.top)/rect.height*2+1);
@@ -163,7 +205,9 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
     hover.style.top=`${Math.max(8,Math.min(y+18,el.clientHeight-55))}px`;
    }
   };
-  const down=(e:PointerEvent)=>{hover.hidden=true;tap.down(e.pointerId,e.clientX,e.clientY,e.pointerType==='touch'?12:5);};
+  const down=(e:PointerEvent)=>{hover.hidden=true;activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});rememberPinch();tap.down(e.pointerId,e.clientX,e.clientY,e.pointerType==='touch'?12:5);};
+  const onPinchCapture=(e:PointerEvent)=>{if(!activePointers.has(e.pointerId))return;activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});rememberPinch();};
+  const forgetPointer=(e:PointerEvent)=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchLocked=false;};
   const move=(e:PointerEvent)=>{
    tap.move(e.pointerId,e.clientX,e.clientY);
    if(e.buttons||e.pointerType==='touch'||!ready){hover.hidden=true;return;}
@@ -174,15 +218,16 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
    }
    showHover(pickAt(e.clientX,e.clientY),e.clientX,e.clientY);
   };
-  const cancel=(e:PointerEvent)=>tap.cancel(e.pointerId);
+  const cancel=(e:PointerEvent)=>{forgetPointer(e);tap.cancel(e.pointerId);};
   const up=(e:PointerEvent)=>{
+   forgetPointer(e);
    const validTap=tap.up(e.pointerId,e.clientX,e.clientY);if(!validTap||!ready)return;
    let found=pickAt(e.clientX,e.clientY);
    const rect=renderer.domElement.getBoundingClientRect();
    if(found<0&&amount>.45)found=findTarget(e.clientX-rect.left,e.clientY-rect.top,e.pointerType==='touch'?24:16);
    if(found>=0){hover.hidden=true;select.current(atlas.parts[found].id);}
   };
-  renderer.domElement.addEventListener('pointerdown',down);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',up);renderer.domElement.addEventListener('pointercancel',cancel);
+  renderer.domElement.addEventListener('pointerdown',down);renderer.domElement.addEventListener('pointermove',onPinchCapture,{capture:true});renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',up);renderer.domElement.addEventListener('pointercancel',cancel);
   const partOpacity=(p:Part,s:SceneState,selected:boolean)=>{
    const allowed=!s.visibleIds||s.visibleIds.includes(p.id)||selected;
    if(!allowed)return 0;
@@ -198,19 +243,21 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
    if(s.ghost&&s.selected.length&&!selected)return muscle?0.055:bone?0.2:0;
    return 1;
   };
-  const viewDirection=(view:string)=>view==='front'?new T.Vector3(0,.02,1):view==='back'?new T.Vector3(0,.02,-1):view==='side'?new T.Vector3(1,.02,0):new T.Vector3(.35,.06,1).normalize();
+  const viewDirection=(view:string)=>new T.Vector3(...cameraAim(view)).normalize();
   const currentDirection=()=>{
    const direction=camera.position.clone().sub(controls.target);
    if(direction.lengthSq()<1e-8)return viewDirection(latest.current.view);
    return direction.normalize();
   };
-  const fitToParts=(ids:string[],view:string|null)=>{
+  const fitToParts=(ids:string[],view:string|null,kind:ReturnType<typeof frameKind>='body')=>{
    const box=new T.Box3();
    atlas.parts.forEach((p,i)=>{if(ids.includes(p.id))box.union(bounds[i]);});
    if(box.isEmpty()){if(view)fit(view,amount);return;}
+   if(kind==='region')box.expandByScalar(box.getSize(new T.Vector3()).length()*0.03);
    const center=box.getCenter(new T.Vector3()),size=box.getSize(new T.Vector3());
    const mobile=el.clientWidth<768;
-   const distance=Math.max(mobile?1.15:.75,Math.max(size.y,size.x/Math.max(.35,camera.aspect),size.z)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*(mobile?2.4:1.85));
+   const padding=framePadding(kind,mobile),floor=minFrameDistance(kind,mobile);
+   const distance=Math.max(floor,frameSpan(size,Math.max(.35,camera.aspect),kind,mobile)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*padding);
    camera.clearViewOffset();
    controls.maxDistance=Math.max(40,distance*2);
    controls.target.copy(center);
@@ -219,8 +266,10 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
   };
   const refit=(s:SceneState)=>{
    const named=s.preserveView?null:s.view;
-   if(s.selected.length)fitToParts(s.selected,named);
-   else if(s.visibleIds?.length)fitToParts(s.visibleIds,named);
+   const kind=frameKind(s);
+   const ids=idsToFrame(atlas,s);
+   if(kind==='body'&&named)fit(named,amount);
+   else if(ids.length)fitToParts(ids,named,kind);
    else if(named)fit(named,amount);
   };
   const clock=new T.Clock();let lastExtent=-1,lastNeededKey='';
@@ -263,12 +312,27 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
    const isolateKey=s.isolate?s.selected.join(',')+':'+s.reset+':'+s.inspectorOpen+':'+camera.aspect:'';
    if(isolateKey!==lastIsolate||(s.isolate&&moving)){
     if(s.isolate){const box=new T.Box3();atlas.parts.forEach((p,i)=>{if(s.selected.includes(p.id))box.union(bounds[i].clone().translate(new T.Vector3(data[i*4],data[i*4+1],data[i*4+2])));});
-     if(!box.isEmpty()){const center=box.getCenter(new T.Vector3()),size=box.getSize(new T.Vector3());const w=el.clientWidth,h=el.clientHeight,mobile=w<768,landscape=w>h&&h<=600;let left=20,right=w-20,top=mobile?175:110,bottom=h-170;if(s.inspectorOpen){if(landscape){right=w-335;top=100;bottom=h-125;}else if(mobile){const sheet=document.querySelector('.detail-sheet')?.getBoundingClientRect(),header=document.querySelector('.identity')?.getBoundingClientRect();top=(header?.bottom??94)+16;bottom=(sheet?.top??h*.58-139)-16;}else{right=w-370;left=w>1100?285:25;}}const availableWidth=Math.max(150,right-left),availableHeight=Math.max(40,bottom-top);camera.setViewOffset(w,h,w/2-(left+right)/2,h/2-(top+bottom)/2,w,h);const distance=Math.max(.07,Math.max(size.y*h/availableHeight,size.x*w/availableWidth/camera.aspect,size.z)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*1.35);controls.maxDistance=Math.max(40,distance*2);controls.target.copy(center);camera.position.copy(center).addScaledVector(currentDirection(),distance);controls.update();dirty=true;}
+     if(!box.isEmpty()){const center=box.getCenter(new T.Vector3()),size=box.getSize(new T.Vector3());const w=el.clientWidth,h=el.clientHeight,mobile=w<768,landscape=w>h&&h<=600;let left=20,right=w-20,top=mobile?175:110,bottom=h-170;if(s.inspectorOpen){if(landscape){right=w-335;top=100;bottom=h-125;}else if(mobile){const sheet=document.querySelector('.lesson-dock, .detail-sheet')?.getBoundingClientRect(),header=document.querySelector('.identity')?.getBoundingClientRect();top=(header?.bottom??94)+16;bottom=(sheet?.top??h*.72)-16;}else{right=w-370;left=w>1100?285:25;}}const availableWidth=Math.max(150,right-left),availableHeight=Math.max(40,bottom-top);camera.setViewOffset(w,h,w/2-(left+right)/2,h/2-(top+bottom)/2,w,h);const distance=Math.max(.07,Math.max(size.y*h/availableHeight,size.x*w/availableWidth/camera.aspect,size.z)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*1.35);controls.maxDistance=Math.max(40,distance*2);controls.target.copy(center);camera.position.copy(center).addScaledVector(currentDirection(),distance);controls.update();dirty=true;}
     }else if(lastIsolate){
      camera.clearViewOffset();
      refit({...s,preserveView:true});
     }
     lastIsolate=isolateKey;
+   }else if(!s.isolate){
+    const mobile=el.clientWidth<768;
+    const dock=mobile&&s.inspectorOpen?document.querySelector('.lesson-dock')?.getBoundingClientRect():undefined;
+    const dockKey=mobile&&s.inspectorOpen?`${Math.round(dock?.top??0)}:${el.clientWidth}x${el.clientHeight}`:'';
+    if(dockKey!==lastDock){
+     if(dock){
+      const w=el.clientWidth,h=el.clientHeight,header=document.querySelector('.identity')?.getBoundingClientRect();
+      const top=(header?.bottom??96)+8,bottom=Math.max(top+120,dock.top-8);
+      camera.setViewOffset(w,h,0,h/2-(top+bottom)/2,w,h);
+     }else{
+      camera.clearViewOffset();
+     }
+     lastDock=dockKey;
+     dirty=true;
+    }
    }
    controls.enableRotate=amount<.8;controls.mouseButtons.LEFT=amount<.8?T.MOUSE.ROTATE:T.MOUSE.PAN;controls.touches.ONE=amount<.8?T.TOUCH.ROTATE:T.TOUCH.PAN;ground.visible=platform.visible=ring.visible=innerRing.visible=amount<.5&&!s.isolate;markers.visible=amount>.75;controls.autoRotate=s.rotate&&!s.isolate&&amount<.4;controls.autoRotateSpeed=.65;controls.update();if(controls.autoRotate)dirty=true;
    if(dirty){renderer.render(scene,camera);targets=[];if(amount>.45){const hasSolid=atlas.parts.some((p,i)=>p.system!=='integumentary'&&data[i*4+3]>.5);atlas.parts.forEach((p,i)=>{if(data[i*4+3]<.5||(hasSolid&&p.system==='integumentary'))return;let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity;for(let corner=0;corner<8;corner++){projected.set(p.bounds[(corner&1)?1:0][0]+data[i*4],p.bounds[(corner&2)?1:0][1]+data[i*4+1],p.bounds[(corner&4)?1:0][2]+data[i*4+2]).project(camera);const x=(projected.x+1)*el.clientWidth/2,y=(1-projected.y)*el.clientHeight/2;left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}projected.copy(centers[i]).add(new T.Vector3(data[i*4],data[i*4+1],data[i*4+2])).project(camera);if(projected.z< -1||projected.z>1)return;targets.push({index:i,x:(projected.x+1)*el.clientWidth/2,y:(1-projected.y)*el.clientHeight/2,left,right,top,bottom});});}dirty=false;}

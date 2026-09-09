@@ -134,3 +134,53 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
  }
  .studio.is-waiting .studio-footer{display:none}
 }
+
+/* Phone: atlas stays on screen. Chips and a lesson card never replace the body. */
+.area-chips{display:none}
+.lesson-dock{display:none}
+@media(max-width:767px){
+ body:has(.detail-sheet) .view-controls,
+ body:has(.lesson-dock) .view-controls{visibility:visible}
+ .studio.is-phone .identity{pointer-events:none}
+ .studio.is-phone .eyebrow{font-size:8px;letter-spacing:.12em}
+ .studio.is-phone h1{font-size:22px;margin:4px 0 2px;gap:8px}
+ .studio.is-phone .identity-meta{font-size:11px;max-width:none;line-height:1.35}
+ .studio.is-phone.is-studying h1{font-size:18px;margin:2px 0 0}
+ .studio.is-phone.is-studying .identity-meta{display:none}
+ .studio.is-phone .scene-caption,
+ .studio.is-phone .studio-footer,
+ .studio.is-phone.is-studying .bottom-dock{display:none}
+ .studio.is-phone .view-controls button{width:auto;min-width:44px;padding:0 7px}
+ .studio.is-phone .view-controls button span{font-size:11px;font-weight:600}
+ .area-chips{display:flex;position:absolute;left:10px;right:10px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:8;gap:6px;overflow-x:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px;pointer-events:auto}
+ .area-chips::-webkit-scrollbar{display:none}
+ .area-chips button{flex:0 0 auto;height:36px;min-height:36px;padding:0 12px;border-radius:999px;background:#fffffff2;border:1px solid #18253618;font-size:12px;font-weight:500;color:#44515d;box-shadow:0 8px 24px #2433440e}
+ .area-chips button[aria-pressed=true]{background:#263b48;color:#fff;border-color:#263b48}
+ .studio.is-phone .bottom-dock{padding:8px 10px;gap:8px;bottom:calc(10px + env(safe-area-inset-bottom))}
+ .studio.is-phone .explode-label{display:none}
+ .studio.is-phone .peel-presets{margin:0}
+ .studio.is-phone .dock-reset{padding:4px 0 4px 8px}
+ .studio.is-phone .loading{top:auto;left:12px;right:12px;bottom:calc(148px + env(safe-area-inset-bottom));transform:none;min-width:0;padding:12px 14px;z-index:16}
+ .studio.is-phone .loading-track{min-width:0}
+ .studio.is-phone .install-coach{top:max(170px,calc(env(safe-area-inset-top)+152px));left:12px;right:12px;bottom:auto;width:auto;padding:8px 10px;gap:8px;align-items:center}
+ .studio.is-phone .install-coach span,.studio.is-phone .install-coach .install-actions{display:none}
+ .studio.is-phone .install-coach strong{margin:0;font-size:12px}
+ .lesson-dock{display:flex;flex-direction:column;position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:26;max-height:26dvh;padding:22px 14px 8px;border-radius:18px;background:#fffffff8;gap:6px!important;pointer-events:auto}
+ .lesson-dock.is-open{max-height:40dvh}
+ .lesson-dock .lesson-toggle{position:absolute;top:4px;left:50%;transform:translateX(-50%);width:44px;height:22px;min-height:22px;padding:0;color:#7a8692}
+ .lesson-dock .lesson-close{position:absolute;top:4px;right:4px;width:40px;height:40px;min-width:40px}
+ .lesson-dock .detail-header{padding-right:36px;gap:4px}
+ .lesson-dock .detail-header .structure-title{font-size:18px!important;line-height:1.15!important}
+ .lesson-dock .detail-accent{width:20px;height:3px}
+ .lesson-dock .detail-scroll{min-height:0}
+ .lesson-dock.is-peek .detail-scroll{max-height:4.6em}
+ .lesson-dock.is-peek .training-card.is-compact .structure-description{display:none}
+ .lesson-dock .detail-actions{padding-top:4px;gap:0}
+ .lesson-dock .lesson-expand{justify-content:space-between;width:100%}
+ .training-card.is-compact .structure-description{margin-top:6px}
+ .lesson-dock .eyebrow{font-size:9px}
+}
+@media(max-height:600px) and (orientation:landscape){
+ .area-chips{left:auto;right:max(12px,env(safe-area-inset-right));top:70px;bottom:auto;width:min(320px,46vw);flex-wrap:wrap;overflow:visible}
+ .lesson-dock,.lesson-dock.is-open{left:auto;right:max(10px,env(safe-area-inset-right));top:64px;bottom:12px;width:min(340px,46vw);max-height:none}
+}

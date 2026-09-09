@@ -11,19 +11,35 @@ interface Props {
  onStartArea?: () => void;
  onClose: () => void;
  mobileOpen: boolean;
- waiting: boolean;
  phone: boolean;
 }
 
-export default function TrainingPanel({region, lessons, selectedId, onRegion, onLesson, onStartArea, onClose, mobileOpen, waiting, phone}: Props) {
+export function AreaChips({region, onRegion}: {region: RegionId | null; onRegion: (id: RegionId | null) => void}) {
+ return (
+  <nav className="area-chips" aria-label="Body areas">
+   <Button variant="ghost" aria-pressed={!region} onClick={() => onRegion(null)}>Whole body</Button>
+   {REGIONS.map(item => (
+    <Button
+     key={item.id}
+     variant="ghost"
+     aria-pressed={region === item.id}
+     onClick={() => onRegion(region === item.id ? null : item.id)}
+    >
+     {item.name}
+    </Button>
+   ))}
+  </nav>
+ );
+}
+
+export default function TrainingPanel({region, lessons, selectedId, onRegion, onLesson, onStartArea, onClose, mobileOpen, phone}: Props) {
  const active = REGIONS.find(item => item.id === region);
  return (
-  <section className={`layers-panel glass training-panel ${mobileOpen ? 'mobile-open' : ''} ${waiting ? 'is-waiting' : ''}`} aria-label="Body areas">
+  <section className={`layers-panel glass training-panel ${mobileOpen ? 'mobile-open' : ''}`} aria-label="Body areas">
    <div className="panel-heading">
-    <span>{waiting ? 'Start with one area' : 'Body areas'}</span>
-    {!waiting && <Button variant="ghost" className="mobile-only icon-button" onClick={onClose} aria-label="Close body areas"><X size={18}/></Button>}
+    <span>Body areas</span>
+    <Button variant="ghost" className="mobile-only icon-button" onClick={onClose} aria-label="Close body areas"><X size={18}/></Button>
    </div>
-   {waiting && <p className="region-hint">Only that part of the body downloads. Wi‑Fi is best the first time.</p>}
    <div className="region-grid">
     {!phone && <Button variant="ghost" aria-pressed={!region} onClick={() => onRegion(null)}>Whole body</Button>}
     {REGIONS.map(item => (
@@ -33,7 +49,7 @@ export default function TrainingPanel({region, lessons, selectedId, onRegion, on
    {active && <p className="region-hint">{active.hint}</p>}
    {active?.caution && <p className="region-caution"><strong>Be careful.</strong> {active.caution}</p>}
    <div className="lesson-list">
-    {lessons.length === 0 && <p className="search-note">{waiting ? 'Pick Neck, Shoulders, or Back to begin.' : 'Pick a body area, or tap a muscle on the body.'}</p>}
+    {lessons.length === 0 && <p className="search-note">Pick a body area, or tap a muscle on the body.</p>}
     {lessons.length > 0 && onStartArea && !selectedId && (
      <Button className="primary-action start-area" onClick={onStartArea}>Learn the first muscle</Button>
     )}

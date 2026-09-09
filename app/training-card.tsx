@@ -1,11 +1,19 @@
 import type {Lesson} from './training';
 import {COACH} from './training-coach';
 
-export default function TrainingCard({lesson, fallback}: {lesson?: Lesson; fallback: string}) {
+export default function TrainingCard({lesson, fallback, compact = false}: {lesson?: Lesson; fallback: string; compact?: boolean}) {
  if (!lesson) {
   return <p className="structure-description">{fallback}</p>;
  }
  const coach = COACH[lesson.id];
+ if (compact) {
+  return (
+   <div className="training-card is-compact">
+    <p className="lesson-kicker">{lesson.also}</p>
+    <p className="structure-description">{lesson.does}</p>
+   </div>
+  );
+ }
  return (
   <div className="training-card">
    <p className="lesson-kicker">{lesson.also}</p>
