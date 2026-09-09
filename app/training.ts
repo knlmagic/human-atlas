@@ -76,6 +76,8 @@ function inRegionBox(part: Part, region: Region) {
 
 const SKIP_REGION = /eye|tongue|tooth|teeth|mandible|maxilla|nasal|hyoid|cricoid|arytenoid|vocal|cochlea|brain|ventricle|myocard/i;
 
+export const INTRO_REGIONS: RegionId[] = ['neck', 'shoulders', 'back'];
+
 export function partsInRegion(atlas: Atlas, id: RegionId) {
   const region = REGIONS.find(item => item.id === id);
   if (!region) return [];
@@ -86,6 +88,10 @@ export function partsInRegion(atlas: Atlas, id: RegionId) {
     if (inRegionBox(part, region) || extra) ids.push(part.id);
   }
   return ids;
+}
+
+export function partsInRegions(atlas: Atlas, ids: RegionId[]) {
+  return [...new Set(ids.flatMap(id => partsInRegion(atlas, id)))];
 }
 
 function tidyFallback(name: string) {
