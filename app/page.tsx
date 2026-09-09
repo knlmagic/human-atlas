@@ -11,9 +11,8 @@ import AnatomyScene from './scene';
 import TrainingPanel, {AreaChips} from './training-panel';
 import TrainingCard from './training-card';
 import InstallCoach from './install-coach';
-import {DEFAULT_VISIBLE, type Atlas, type Concept, type LayerMode, type SceneState, type View} from './anatomy';
+import {DEFAULT_VISIBLE, type Atlas, type Concept, type LayerMode, type SceneState} from './anatomy';
 import {
- INTRO_REGIONS,
  LESSONS,
  REGIONS,
  displayName,
@@ -21,12 +20,11 @@ import {
  lessonSequence,
  lessonsForRegion,
  partsForLesson,
- partsInRegion,
- partsInRegions,
  searchTraining,
  type Lesson,
  type RegionId,
 } from './training';
+import {CAMERA_VIEWS, regionForPart, shouldReframeArea, visibleIdsForStudio} from './studio';
 
 const initial: SceneState = {
  explode: 0,
@@ -44,7 +42,6 @@ const initial: SceneState = {
 
 export default function Home() {
  const detailTitle = useRef<HTMLHeadingElement>(null);
- const primed = useRef(false);
  const [atlas, setAtlas] = useState<Atlas | null>(null);
  const [state, setState] = useState(initial);
  const [progress, setProgress] = useState(0);
@@ -86,13 +83,6 @@ export default function Home() {
  }, []);
 
  useEffect(() => {
-  if (!atlas || !boot || primed.current) return;
-  primed.current = true;
-  if (!isMobile) return;
-  setState(s => ({...s, view: 'back', frame: s.frame + 1}));
- }, [atlas, boot, isMobile]);
-
- useEffect(() => {
   const key = (e: KeyboardEvent) => {
    if (e.key === '/' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
     e.preventDefault();
@@ -106,8 +96,7 @@ export default function Home() {
  }, []);
 
  const parts = useMemo(() => new Map(atlas?.parts.map(p => [p.id, p])), [atlas]);
- const introIds = useMemo(() => (atlas ? partsInRegions(atlas, INTRO_REGIONS) : []), [atlas]);
- const visibleIds = atlas ? (region ? partsInRegion(atlas, region) : phone ? introIds : null) : null;
+ const visibleIds = visibleIdsForStudio(atlas, region);
  const selectedParts = state.selected.map(id => parts.get(id)).filter(p => !!p);
  const selected = selectedParts[0];
  const lesson = chosen ? LESSONS.find(item => item.id === chosen.id) ?? lessonForName(chosen.name) : undefined;
@@ -117,15 +106,12 @@ export default function Home() {
  const studying = details && selectedParts.length > 0;
  const showScene = Boolean(atlas && boot);
 
- const showingIds = visibleIds;
- const partsOnScreen = (ids: string[]) => !showingIds || ids.some(id => showingIds.includes(id));
-
  const chooseLesson = (next: Lesson, ids?: string[]) => {
   if (!atlas) return;
   const elements = ids?.length ? ids : partsForLesson(atlas, next);
   if (!elements.length) return;
-  const missing = !partsOnScreen(elements);
-  if (missing) setRegion(next.region);
+  const reframe = shouldReframeArea(region, next.region);
+  setRegion(next.region);
   setChosen({id: next.id, name: next.title, elements});
   setState(s => ({
    ...s,
@@ -133,9 +119,8 @@ export default function Home() {
    isolate: false,
    ghost: true,
    rotate: false,
-   preserveView: !missing,
-   view: missing ? (REGIONS.find(item => item.id === next.region)?.view ?? s.view) : s.view,
-   frame: missing ? s.frame + 1 : s.frame,
+   preserveView: !reframe,
+   frame: reframe ? s.frame + 1 : s.frame,
   }));
   setDetails(true);
   setLessonOpen(false);
@@ -148,8 +133,11 @@ export default function Home() {
    chooseLesson(next, c.elements.length ? c.elements : undefined);
    return;
   }
+  const area = atlas && c.elements[0] ? regionForPart(atlas, c.elements[0]) : null;
+  const reframe = shouldReframeArea(region, area);
+  if (area) setRegion(area);
   setChosen({...c, name: displayName(c.name)});
-  setState(s => ({...s, selected: c.elements, isolate: false, ghost: true, rotate: false, preserveView: true}));
+  setState(s => ({...s, selected: c.elements, isolate: false, ghost: true, rotate: false, preserveView: !reframe, frame: reframe ? s.frame + 1 : s.frame}));
   setDetails(true);
   setLessonOpen(false);
   setPanel(null);
@@ -168,8 +156,11 @@ export default function Home() {
    chooseLesson(next, [id]);
    return;
   }
+  const area = regionForPart(atlas!, id);
+  const reframe = shouldReframeArea(region, area);
+  if (area) setRegion(area);
   setChosen({id: part.conceptId, name: displayName(part.name), elements: [id]});
-  setState(s => ({...s, selected: [id], isolate: false, ghost: true, rotate: false, preserveView: true}));
+  setState(s => ({...s, selected: [id], isolate: false, ghost: true, rotate: false, preserveView: !reframe, frame: reframe ? s.frame + 1 : s.frame}));
   setDetails(true);
   setLessonOpen(false);
   setPanel(null);
@@ -188,7 +179,7 @@ export default function Home() {
    selected: [],
    isolate: false,
    ghost: false,
-   view: keep ? s.view : (next?.view ?? (phone ? 'back' : 'three-quarter')),
+    view: keep ? s.view : (next?.view ?? 'three-quarter'),
    rotate: false,
    preserveView: keep,
    frame: s.frame + 1,
@@ -200,7 +191,7 @@ export default function Home() {
   setState(s => ({
    ...initial,
    visible: DEFAULT_VISIBLE,
-   view: phone ? 'back' : 'three-quarter',
+    view: 'three-quarter',
    reset: s.reset + 1,
    frame: s.frame + 1,
   }));
@@ -361,17 +352,17 @@ export default function Home() {
     </section>
    )}
    <nav className="view-controls glass" aria-label="Camera controls">
-    {(['three-quarter', 'front', 'side', 'back'] as View[]).map((v, i) => (
+    {CAMERA_VIEWS.map(view => (
      <Button
       variant="ghost"
-      key={v}
-      className={state.view === v ? 'active' : ''}
-      aria-pressed={state.view === v}
-      onClick={() => setState(s => ({...s, view: v, rotate: false, preserveView: false, frame: s.frame + 1}))}
-      title={`${v} view`}
-      aria-label={`${v} view`}
+      key={view.id}
+      className={state.view === view.id ? 'active' : ''}
+      aria-pressed={state.view === view.id}
+      onClick={() => setState(s => ({...s, view: view.id, rotate: false, preserveView: false, frame: s.frame + 1}))}
+      title={view.label}
+      aria-label={view.label}
      >
-      <span>{['¾', 'F', 'S', 'B'][i]}</span>
+      <span>{view.mark}</span>
      </Button>
     ))}
     <i />

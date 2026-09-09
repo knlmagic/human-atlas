@@ -17,6 +17,7 @@ interface Props {
 export function AreaChips({region, onRegion}: {region: RegionId | null; onRegion: (id: RegionId | null) => void}) {
  return (
   <nav className="area-chips" aria-label="Body areas">
+   <Button variant="ghost" aria-pressed={!region} onClick={() => onRegion(null)}>Whole body</Button>
    {REGIONS.map(item => (
     <Button
      key={item.id}

@@ -8,6 +8,7 @@ import {decodeModelResponse} from './model-download';
 import {PointerTap} from './pointer-tap';
 import {SYSTEMS,type Atlas,type Part,type SceneState} from './anatomy';
 import {displayName,isTrainingBone,isTrainingMuscle} from './training';
+import {cameraAim,frameKind,framePadding,frameSpan,idsToFrame,minFrameDistance} from './studio';
 interface Props {atlas:Atlas;state:SceneState;onSelect:(id:string)=>void;onProgress:(n:number)=>void;onError:(s:string)=>void}
 export default function AnatomyScene({atlas,state,onSelect,onProgress,onError}:Props){
  const host=useRef<HTMLDivElement>(null),latest=useRef(state),select=useRef(onSelect);
@@ -133,7 +134,7 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
    const aspect=camera.aspect,mobile=el.clientWidth<768,normalDistance=mobile?Math.max(4.5,1.8*el.clientHeight/Math.max(160,el.clientHeight-350)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))):4;
    const reservedHeight=mobile?350:270;const availableAspect=Math.max(.35,(el.clientWidth-(mobile?40:340))/Math.max(160,el.clientHeight-reservedHeight));const atlasDistance=Math.max(packingHeight,packingWidth/availableAspect)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*(el.clientHeight/Math.max(160,el.clientHeight-reservedHeight))*1.08;
    const distance=T.MathUtils.lerp(normalDistance,Math.max(.2,atlasDistance),extent);if(extent>.8)view='front';
-   const direction=view==='front'?new T.Vector3(0,.02,1):view==='back'?new T.Vector3(0,.02,-1):view==='side'?new T.Vector3(1,.02,0):new T.Vector3(.35,.06,1).normalize();
+   const direction=new T.Vector3(...cameraAim(view)).normalize();
    controls.target.set(extent>.1&&el.clientWidth>767?-packingWidth*.12:0,extent>.1||mobile?.85:.68,0);camera.position.copy(controls.target).addScaledVector(direction,distance);controls.update();dirty=true;
   };
   const resize=()=>{layoutKey='';lastState=null;renderer.setPixelRatio(Math.min(devicePixelRatio,el.clientWidth<768||el.clientHeight<600?1.5:2));camera.aspect=el.clientWidth/el.clientHeight;camera.updateProjectionMatrix();renderer.setSize(el.clientWidth,el.clientHeight);dirty=true;};const observer=new ResizeObserver(resize);observer.observe(el);
@@ -198,19 +199,21 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
    if(s.ghost&&s.selected.length&&!selected)return muscle?0.055:bone?0.2:0;
    return 1;
   };
-  const viewDirection=(view:string)=>view==='front'?new T.Vector3(0,.02,1):view==='back'?new T.Vector3(0,.02,-1):view==='side'?new T.Vector3(1,.02,0):new T.Vector3(.35,.06,1).normalize();
+  const viewDirection=(view:string)=>new T.Vector3(...cameraAim(view)).normalize();
   const currentDirection=()=>{
    const direction=camera.position.clone().sub(controls.target);
    if(direction.lengthSq()<1e-8)return viewDirection(latest.current.view);
    return direction.normalize();
   };
-  const fitToParts=(ids:string[],view:string|null)=>{
+  const fitToParts=(ids:string[],view:string|null,kind:ReturnType<typeof frameKind>='body')=>{
    const box=new T.Box3();
    atlas.parts.forEach((p,i)=>{if(ids.includes(p.id))box.union(bounds[i]);});
    if(box.isEmpty()){if(view)fit(view,amount);return;}
+   if(kind==='region')box.expandByScalar(box.getSize(new T.Vector3()).length()*0.03);
    const center=box.getCenter(new T.Vector3()),size=box.getSize(new T.Vector3());
    const mobile=el.clientWidth<768;
-   const distance=Math.max(mobile?1.15:.75,Math.max(size.y,size.x/Math.max(.35,camera.aspect),size.z)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*(mobile?2.4:1.85));
+   const padding=framePadding(kind,mobile),floor=minFrameDistance(kind,mobile);
+   const distance=Math.max(floor,frameSpan(size,Math.max(.35,camera.aspect),kind,mobile)/(2*Math.tan(T.MathUtils.degToRad(camera.fov/2)))*padding);
    camera.clearViewOffset();
    controls.maxDistance=Math.max(40,distance*2);
    controls.target.copy(center);
@@ -219,8 +222,10 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
   };
   const refit=(s:SceneState)=>{
    const named=s.preserveView?null:s.view;
-   if(s.selected.length)fitToParts(s.selected,named);
-   else if(s.visibleIds?.length)fitToParts(s.visibleIds,named);
+   const kind=frameKind(s);
+   const ids=idsToFrame(atlas,s);
+   if(kind==='body'&&named)fit(named,amount);
+   else if(ids.length)fitToParts(ids,named,kind);
    else if(named)fit(named,amount);
   };
   const clock=new T.Clock();let lastExtent=-1,lastNeededKey='';
