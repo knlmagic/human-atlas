@@ -22,7 +22,7 @@ export default function AnatomyScene({atlas,state,onSelect,onProgress,onError}:P
   renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<768?1.5:2));renderer.setClearColor('#f2f3f3');renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;el.appendChild(renderer.domElement);
   renderer.domElement.setAttribute('aria-label','Massage practice. Drag to turn, pinch or scroll to zoom, and tap a muscle to learn it.');
   const scene=new T.Scene(),camera=new T.PerspectiveCamera(34,1,.005,100),controls=new OrbitControls(camera,renderer.domElement);
-  camera.position.set(1.4,1.05,3.6);controls.target.set(0,.85,0);controls.enableDamping=true;controls.dampingFactor=.085;controls.minDistance=.07;controls.maxDistance=40;controls.maxPolarAngle=Math.PI*.96;controls.addEventListener('change',()=>{dirty=true;});
+  camera.position.set(1.4,1.05,3.6);controls.target.set(0,.85,0);controls.enableDamping=true;controls.dampingFactor=.085;controls.minDistance=.07;controls.maxDistance=40;controls.maxPolarAngle=Math.PI*.96;controls.zoomToCursor=true;controls.addEventListener('change',()=>{dirty=true;});
   const pmrem=new T.PMREMGenerator(renderer),room=new RoomEnvironment(),env=pmrem.fromScene(room,.04);scene.environment=env.texture;room.dispose();pmrem.dispose();
   scene.add(new T.HemisphereLight(0xfff4ea,0x7d8894,0.82));
   const key=new T.DirectionalLight(0xfff6ea,2.7);key.position.set(-2.2,4.2,3.1);scene.add(key);
@@ -139,6 +139,47 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
   };
   const resize=()=>{layoutKey='';lastState=null;renderer.setPixelRatio(Math.min(devicePixelRatio,el.clientWidth<768||el.clientHeight<600?1.5:2));camera.aspect=el.clientWidth/el.clientHeight;camera.updateProjectionMatrix();renderer.setSize(el.clientWidth,el.clientHeight);dirty=true;};const observer=new ResizeObserver(resize);observer.observe(el);
   const raycaster=new T.Raycaster(),pointer=new T.Vector2(),tap=new PointerTap(),worldBox=new T.Box3(),hitPoint=new T.Vector3();
+  const activePointers=new Map<number,{x:number;y:number}>(),pinchFocus=new T.Vector3(),pinchNow=new T.Vector3(),focusDir=new T.Vector3(),focusPlane=new T.Plane();
+  let pinchLocked=false;
+  const worldUnderCursor=(cx:number,cy:number,out:T.Vector3)=>{
+   const rect=renderer.domElement.getBoundingClientRect(),w=rect.width,h=rect.height;
+   if(w<1||h<1)return false;
+   pointer.set((cx-rect.left)/w*2-1,-(cy-rect.top)/h*2+1);
+   raycaster.setFromCamera(pointer,camera);
+   let nearest=Infinity,hit=false;
+   const hasSolid=atlas.parts.some((p,i)=>p.system!=='integumentary'&&data[i*4+3]>.5);
+   pickers.forEach((mesh,i)=>{
+    if(!mesh||data[i*4+3]<.02||(hasSolid&&atlas.parts[i].system==='integumentary'))return;
+    worldBox.copy(bounds[i]).translate(mesh.position);
+    if(!raycaster.ray.intersectBox(worldBox,hitPoint))return;
+    const hits=raycaster.intersectObject(mesh,false);
+    if(hits[0]&&hits[0].distance<nearest){nearest=hits[0].distance;out.copy(hits[0].point);hit=true;}
+   });
+   if(hit)return true;
+   camera.getWorldDirection(focusDir);
+   focusPlane.setFromNormalAndCoplanarPoint(focusDir,controls.target);
+   return raycaster.ray.intersectPlane(focusPlane,out)!==null;
+  };
+  const pinchMid=()=>{
+   if(activePointers.size<2)return null;
+   const pts=Array.from(activePointers.values());
+   return {x:(pts[0].x+pts[1].x)*.5,y:(pts[0].y+pts[1].y)*.5};
+  };
+  const rememberPinch=()=>{
+   const mid=pinchMid();
+   pinchLocked=!!mid&&worldUnderCursor(mid.x,mid.y,pinchFocus);
+  };
+  const applyPinchFocus=()=>{
+   if(!pinchLocked)return;
+   const mid=pinchMid();
+   if(!mid||!worldUnderCursor(mid.x,mid.y,pinchNow))return;
+   const dx=pinchFocus.x-pinchNow.x,dy=pinchFocus.y-pinchNow.y,dz=pinchFocus.z-pinchNow.z;
+   if(dx*dx+dy*dy+dz*dz<1e-14)return;
+   camera.position.x+=dx;camera.position.y+=dy;camera.position.z+=dz;
+   controls.target.x+=dx;controls.target.y+=dy;controls.target.z+=dz;
+   dirty=true;
+  };
+  controls.addEventListener('change',applyPinchFocus);
   const pickAt=(cx:number,cy:number)=>{
    const rect=renderer.domElement.getBoundingClientRect();
    pointer.set((cx-rect.left)/rect.width*2-1,-(cy-rect.top)/rect.height*2+1);
@@ -164,7 +205,9 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
     hover.style.top=`${Math.max(8,Math.min(y+18,el.clientHeight-55))}px`;
    }
   };
-  const down=(e:PointerEvent)=>{hover.hidden=true;tap.down(e.pointerId,e.clientX,e.clientY,e.pointerType==='touch'?12:5);};
+  const down=(e:PointerEvent)=>{hover.hidden=true;activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});rememberPinch();tap.down(e.pointerId,e.clientX,e.clientY,e.pointerType==='touch'?12:5);};
+  const onPinchCapture=(e:PointerEvent)=>{if(!activePointers.has(e.pointerId))return;activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});rememberPinch();};
+  const forgetPointer=(e:PointerEvent)=>{activePointers.delete(e.pointerId);if(activePointers.size<2)pinchLocked=false;};
   const move=(e:PointerEvent)=>{
    tap.move(e.pointerId,e.clientX,e.clientY);
    if(e.buttons||e.pointerType==='touch'||!ready){hover.hidden=true;return;}
@@ -175,15 +218,16 @@ diffuseColor.a = mix(partVisible, 1.0, partSelected);`);
    }
    showHover(pickAt(e.clientX,e.clientY),e.clientX,e.clientY);
   };
-  const cancel=(e:PointerEvent)=>tap.cancel(e.pointerId);
+  const cancel=(e:PointerEvent)=>{forgetPointer(e);tap.cancel(e.pointerId);};
   const up=(e:PointerEvent)=>{
+   forgetPointer(e);
    const validTap=tap.up(e.pointerId,e.clientX,e.clientY);if(!validTap||!ready)return;
    let found=pickAt(e.clientX,e.clientY);
    const rect=renderer.domElement.getBoundingClientRect();
    if(found<0&&amount>.45)found=findTarget(e.clientX-rect.left,e.clientY-rect.top,e.pointerType==='touch'?24:16);
    if(found>=0){hover.hidden=true;select.current(atlas.parts[found].id);}
   };
-  renderer.domElement.addEventListener('pointerdown',down);renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',up);renderer.domElement.addEventListener('pointercancel',cancel);
+  renderer.domElement.addEventListener('pointerdown',down);renderer.domElement.addEventListener('pointermove',onPinchCapture,{capture:true});renderer.domElement.addEventListener('pointermove',move);renderer.domElement.addEventListener('pointerup',up);renderer.domElement.addEventListener('pointercancel',cancel);
   const partOpacity=(p:Part,s:SceneState,selected:boolean)=>{
    const allowed=!s.visibleIds||s.visibleIds.includes(p.id)||selected;
    if(!allowed)return 0;

@@ -37,6 +37,8 @@ describe('therapist outcome: know the human they will work on', () => {
   expect(source).toContain('CAMERA_VIEWS');
   const scene = readFileSync(new URL('./scene.tsx', import.meta.url), 'utf8');
   expect(scene).toContain('idsToFrame');
+  expect(scene).toContain('zoomToCursor');
+  expect(scene).toContain('applyPinchFocus');
   const chips = readFileSync(new URL('./training-panel.tsx', import.meta.url), 'utf8');
   expect(chips).toContain('Whole body');
  });
