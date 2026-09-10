@@ -50,7 +50,6 @@ export function useGuidedTraining({
   setSceneState(state => ({
    ...state,
    selected: selectedIds,
-   isolate: false,
    ghost: selectedIds.length > 0,
    view: step.view,
    rotate: false,
@@ -90,7 +89,6 @@ export function useGuidedTraining({
     ...state,
     selected: [],
     ghost: false,
-    isolate: false,
     view: 'three-quarter',
     preserveView: false,
     frame: state.frame + 1,
@@ -117,7 +115,6 @@ export function useGuidedTraining({
    ...state,
    selected: [],
    ghost: false,
-   isolate: false,
    view: 'three-quarter',
    rotate: false,
    preserveView: false,

@@ -14,11 +14,10 @@
 @media(max-height:600px) and (orientation:landscape){.anatomy-choice{margin-top:7px}.anatomy-choice [data-slot=select-trigger]{min-height:36px}.layers-panel.mobile-open{top:132px}.search-panel{top:70px}.anatomy-search-results{max-height:160px!important}}
 .part-hover{position:absolute;pointer-events:none;z-index:45;max-width:250px;background:#202e3bf5;color:#ffffff;padding:9px 12px;border-radius:5px;box-shadow:0 5px 18px #18253620;font-size:13px;line-height:1.45;text-transform:capitalize}.part-hover[hidden]{display:none}.structure-meta strong{overflow-wrap:anywhere;max-width:150px}.view-controls button:disabled{opacity:.22;background:none}.scene canvas{cursor:grab}.scene canvas:active{cursor:grabbing}
 @media(min-width:768px) and (max-width:1100px){body:has(.detail-sheet) .layers-panel{display:none}}
-@media(max-width:767px){.detail-sheet.is-isolated{max-height:34dvh}}
 .detail-sheet [data-slot=sheet-close],.about-sheet [data-slot=sheet-close]{top:10px;right:10px;min-width:36px;min-height:36px;transform:none}.detail-sheet .eyebrow{padding-right:28px}
 @media(max-width:767px){.detail-sheet [data-slot=sheet-close],.about-sheet [data-slot=sheet-close]{min-width:44px;min-height:44px;top:3px;right:3px}}
 .detail-sheet{overflow:hidden!important}.detail-header{flex-shrink:0;display:flex;flex-direction:column;gap:14px;padding-right:20px}.detail-scroll{display:flex;flex-direction:column;gap:16px;overflow-y:auto;overscroll-behavior:contain;min-height:0;flex:1;scrollbar-width:thin;scrollbar-color:#b9c3cc transparent}.detail-actions{flex-shrink:0;display:flex;flex-direction:column;gap:5px;padding-top:12px;border-top:1px solid #18253618}.detail-actions .secondary-action{padding:7px}.detail-scroll .structure-description{margin:0}.detail-scroll .source-link{margin-top:4px}.detail-scroll .structure-meta{flex-shrink:0}
-@media(max-width:767px){.detail-sheet.is-isolated{max-height:42dvh}.detail-header{gap:8px}.detail-header .structure-title{font-size:23px!important}.detail-sheet{padding:18px!important}.detail-actions{padding-top:8px}.detail-scroll{gap:12px}}
+@media(max-width:767px){.detail-header{gap:8px}.detail-header .structure-title{font-size:23px!important}.detail-sheet{padding:18px!important}.detail-actions{padding-top:8px}.detail-scroll{gap:12px}}
 .system-list{padding-right:16px;scrollbar-gutter:stable}.system-name{min-width:0;overflow:hidden;text-overflow:ellipsis}.system-row [data-slot=switch]{margin-right:2px}
 @media(max-width:767px){.system-list{padding-right:12px}}
 
@@ -78,7 +77,7 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
  .view-controls{top:76px;left:auto;right:max(12px,env(safe-area-inset-right));transform:none;flex-direction:row;width:auto;margin:0}
  .view-controls button{width:44px;height:44px}.view-controls i{width:1px;height:28px;margin:8px 4px}
  .layers-panel.mobile-open{top:12px;bottom:12px;left:max(12px,env(safe-area-inset-left));width:280px;max-height:none}
- .detail-sheet,.detail-sheet.is-isolated{top:12px!important;bottom:12px!important;right:max(12px,env(safe-area-inset-right))!important;left:auto!important;width:300px!important;max-height:none!important;padding:16px!important;gap:12px!important}
+ .detail-sheet{top:12px!important;bottom:12px!important;right:max(12px,env(safe-area-inset-right))!important;left:auto!important;width:300px!important;max-height:none!important;padding:16px!important;gap:12px!important}
  body:has(.detail-sheet) .view-controls,body:has(.detail-sheet) .top-actions{visibility:hidden}
  .search-panel{top:72px;width:350px;left:auto;right:12px}.search-panel input{font-size:16px}.search-note{display:none}
  .anatomy-search-results{max-height:calc(100dvh - 190px)!important}

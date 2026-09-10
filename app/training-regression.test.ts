@@ -100,14 +100,16 @@ describe('therapist outcome: find a body area without losing the atlas', () => {
 });
 
 describe('therapist outcome: tap a muscle and still see the body they will treat', () => {
- it('Framing Front/Side/Back keeps the current person, and only isolate zooms to one muscle', () => {
+ it('keeps the selected muscle highlighted in anatomical context', () => {
   const traps = partsForLesson(atlas, LESSONS.find(lesson => lesson.id === 'upper-traps')!);
   const body = trainingPartIds(atlas);
-  const around = idsToFrame(atlas, {isolate: false, selected: traps, visibleIds: null});
-  const alone = idsToFrame(atlas, {isolate: true, selected: traps, visibleIds: null});
+  const around = idsToFrame(atlas, {visibleIds: null});
   expect(around).toEqual(body);
-  expect(alone).toEqual(traps);
-  expect(figureSpan(atlas, around).height).toBeGreaterThan(figureSpan(atlas, alone).height * 2);
+  expect(figureSpan(atlas, around).height).toBeGreaterThan(figureSpan(atlas, traps).height * 2);
+  const page = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
+  expect(page).not.toContain('See it alone');
+  expect(page).not.toContain('See around it');
+  expect(page).not.toContain(' of ${lessonNav.total}');
  });
 
  it('a lesson on the current figure does not need to hide the rest of the body', () => {
@@ -121,12 +123,11 @@ describe('therapist outcome: tap a muscle and still see the body they will treat
   const lesson = LESSONS.find(item => item.id === 'upper-traps')!;
   const traps = partsForLesson(atlas, lesson);
   const area = partsInRegion(atlas, lesson.region);
-  const framed = idsToFrame(atlas, {isolate: false, selected: traps, visibleIds: area});
+  const framed = idsToFrame(atlas, {visibleIds: area});
   expect(framed).toEqual(area);
   expect(figureSpan(atlas, framed).height).toBeGreaterThan(figureSpan(atlas, traps).height);
   expect(figureSpan(atlas, framed).height).toBeLessThan(figureSpan(atlas, null).height * 0.7);
   expect(framePadding('region', true)).toBeLessThan(framePadding('body', true));
-  expect(framePadding('region', true)).toBeGreaterThan(framePadding('isolate', true));
   expect(minFrameDistance('region', true)).toBeLessThan(minFrameDistance('body', true));
   expect(frameSpan({x: 0.45, y: 0.41, z: 0.23}, 0.46, 'region', true)).toBeLessThan(
    frameSpan({x: 0.45, y: 0.41, z: 0.23}, 0.46, 'body', true),
