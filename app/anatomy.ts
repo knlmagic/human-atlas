@@ -26,7 +26,6 @@ export interface SceneState {
  explode:number;
  visible:SystemId[];
  selected:string[];
- isolate:boolean;
  ghost:boolean;
  visibleIds:string[]|null;
  layer:LayerMode;

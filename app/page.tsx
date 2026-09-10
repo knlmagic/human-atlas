@@ -2,7 +2,7 @@ import {flushSync} from 'react-dom';
 import {registerAtlasTools} from './agent-tools';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useIsMobile} from '@/hooks/use-mobile';
-import {Activity, ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Focus, GraduationCap, Info, Pause, RotateCcw, RotateCw, Search, X} from 'lucide-react';
+import {Activity, ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, GraduationCap, Info, Pause, RotateCcw, RotateCw, Search, X} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {Sheet, SheetContent, SheetTitle, SheetDescription} from '@/components/ui/sheet';
@@ -36,7 +36,6 @@ const initial: SceneState = {
  explode: 0,
  visible: DEFAULT_VISIBLE,
  selected: [],
- isolate: false,
  ghost: false,
  visibleIds: null,
  layer: 'muscle',
@@ -142,7 +141,6 @@ export default function Home() {
   setState(s => ({
    ...s,
    selected: elements,
-   isolate: false,
    ghost: true,
    rotate: false,
    preserveView: !reframe,
@@ -163,7 +161,7 @@ export default function Home() {
   const reframe = shouldReframeArea(region, area);
   if (area) setRegion(area);
   setChosen({...c, name: displayName(c.name)});
-  setState(s => ({...s, selected: c.elements, isolate: false, ghost: true, rotate: false, preserveView: !reframe, frame: reframe ? s.frame + 1 : s.frame}));
+  setState(s => ({...s, selected: c.elements, ghost: true, rotate: false, preserveView: !reframe, frame: reframe ? s.frame + 1 : s.frame}));
   setDetails(true);
   setLessonOpen(false);
   setPanel(null);
@@ -186,7 +184,7 @@ export default function Home() {
   const reframe = shouldReframeArea(region, area);
   if (area) setRegion(area);
   setChosen({id: part.conceptId, name: displayName(part.name), elements: [id]});
-  setState(s => ({...s, selected: [id], isolate: false, ghost: true, rotate: false, preserveView: !reframe, frame: reframe ? s.frame + 1 : s.frame}));
+  setState(s => ({...s, selected: [id], ghost: true, rotate: false, preserveView: !reframe, frame: reframe ? s.frame + 1 : s.frame}));
   setDetails(true);
   setLessonOpen(false);
   setPanel(null);
@@ -203,7 +201,6 @@ export default function Home() {
   setState(s => ({
    ...s,
    selected: [],
-   isolate: false,
    ghost: false,
     view: keep ? s.view : (next?.view ?? 'three-quarter'),
    rotate: false,
@@ -227,7 +224,7 @@ export default function Home() {
   setPanel(null);
  };
 
- const setLayer = (layer: LayerMode) => setState(s => ({...s, layer, isolate: layer === 'muscle' ? s.isolate : false}));
+ const setLayer = (layer: LayerMode) => setState(s => ({...s, layer}));
  const openPanel = (next: 'layers' | 'search') => {
   setGuideMode('explore');
   setDetails(false);
@@ -236,17 +233,15 @@ export default function Home() {
  };
 
  const closeLesson = () => {
-  setState(s => ({...s, selected: [], isolate: false, ghost: false}));
+  setState(s => ({...s, selected: [], ghost: false}));
   setDetails(false);
   setLessonOpen(false);
  };
 
  const lessonNav = lesson ? lessonSequence(lesson.region, lesson.id) : undefined;
- const caption = state.isolate
-  ? (chosen?.name ?? 'One muscle')
-  : region
-    ? activeRegion?.name ?? 'Body area'
-    : 'Adult male · massage practice';
+ const caption = region
+  ? activeRegion?.name ?? 'Body area'
+  : 'Adult male · massage practice';
 
  const fallbackText = selected
   ? `${displayName(selected.name)} is part of the ${selected.system} layer. Pick a listed muscle to get a short training note.`
@@ -256,12 +251,12 @@ export default function Home() {
   <>
    <div className="detail-header">
     <div className="detail-accent" style={{background: '#a85b50'}} />
-    <div className="eyebrow">{activeRegion?.name ?? lesson?.region ?? 'Muscle'}{lessonNav && lessonNav.index >= 0 ? ` · ${lessonNav.index + 1} of ${lessonNav.total}` : ''}</div>
+    <div className="eyebrow">{activeRegion?.name ?? lesson?.region ?? 'Muscle'}</div>
     {phone
      ? <h2 ref={detailTitle} tabIndex={-1} className="structure-title">{chosen?.name}</h2>
      : <SheetTitle ref={detailTitle} tabIndex={-1} className="structure-title">{chosen?.name}</SheetTitle>}
    </div>
-   <div className="detail-scroll" key={`${chosen?.id}-${state.isolate}-${lessonOpen}`}>
+   <div className="detail-scroll" key={`${chosen?.id}-${lessonOpen}`}>
     {phone
      ? <p className="sr-only">{lesson?.does ?? chosen?.name}</p>
      : <SheetDescription className="sr-only">{lesson?.does ?? chosen?.name}</SheetDescription>}
@@ -282,9 +277,6 @@ export default function Home() {
     )}
     {(!phone || lessonOpen) && (
      <>
-      <Button className={`primary-action ${state.isolate ? 'active' : ''}`} onClick={() => setState(s => ({...s, isolate: !s.isolate, ghost: s.isolate, explode: 0}))}>
-       <Focus size={18} />{state.isolate ? 'See around it' : 'See it alone'}<ChevronRight size={16} />
-      </Button>
       {lessonNav?.next && (
        <Button variant="ghost" className="secondary-action" onClick={() => chooseLesson(lessonNav.next!)}>
         Next muscle · {lessonNav.next.title}<ChevronRight size={14} />
@@ -487,7 +479,7 @@ export default function Home() {
     </aside>
    )}
    <Sheet open={studying && !phone} modal={false} disablePointerDismissal onOpenChange={open => { setDetails(open); if (!open) setLessonOpen(false); }}>
-    <SheetContent initialFocus={detailTitle} className={`detail-sheet glass ${state.isolate ? 'is-isolated' : ''}`} showCloseButton={true}>
+    <SheetContent initialFocus={detailTitle} className="detail-sheet glass" showCloseButton={true}>
      {lessonBody}
     </SheetContent>
    </Sheet>

@@ -31,26 +31,23 @@ export function visibleIdsForStudio(atlas: Atlas | null, region: RegionId | null
  return partsInRegion(atlas, region);
 }
 
-export type FrameKind = 'body' | 'region' | 'isolate';
+export type FrameKind = 'body' | 'region';
 
-export function frameKind(state: {isolate: boolean; visibleIds: string[] | null}): FrameKind {
- if (state.isolate) return 'isolate';
+export function frameKind(state: {visibleIds: string[] | null}): FrameKind {
  if (state.visibleIds?.length) return 'region';
  return 'body';
 }
 
 /**
- * Distance multiplier over a tight fit. Region is closer than the standing person,
- * but looser than isolate so neighboring muscles in the area stay tappable.
+ * Distance multiplier over a tight fit. A selected region is closer than the
+ * standing person while retaining neighboring anatomical context.
  */
 export function framePadding(kind: FrameKind, mobile: boolean) {
- if (kind === 'isolate') return mobile ? 1.55 : 1.35;
  if (kind === 'region') return mobile ? 1.72 : 1.5;
  return mobile ? 2.85 : 1.85;
 }
 
 export function minFrameDistance(kind: FrameKind, mobile: boolean) {
- if (kind === 'isolate') return 0.07;
  if (kind === 'region') return mobile ? 0.28 : 0.2;
  return mobile ? 1.15 : 0.75;
 }
@@ -72,15 +69,11 @@ export function regionForPart(atlas: Atlas, partId: string): RegionId | null {
  return null;
 }
 
-/**
- * Frame the standing person, or the active body area. Isolate is the only path
- * that crops to one muscle.
- */
+/** Frame the standing person or active body area, never one muscle alone. */
 export function idsToFrame(
  atlas: Atlas,
- state: {isolate: boolean; selected: string[]; visibleIds: string[] | null},
+ state: {visibleIds: string[] | null},
 ) {
- if (state.isolate && state.selected.length) return state.selected;
  if (state.visibleIds?.length) return state.visibleIds;
  return trainingPartIds(atlas);
 }

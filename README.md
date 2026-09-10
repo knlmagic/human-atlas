@@ -63,6 +63,8 @@ node scripts/validate-atlas.mjs
 
 The registration script verifies the official archive checksum and records the landmark transform, source checksums, output checksums, and geometry bounds.
 
+After rebuilding or replacing `atlas.json`, run `node scripts/correct-anatomy-systems.mjs` before validation. This reapplies reviewed corrections for source parts that were assigned to the wrong display system.
+
 ## Deploy
 
 Import this repository into Vercel as a Vite project. The included `vercel.json` configures `npm ci`, `npm run build`, and the `dist` output directory. It can also be served by a static host.

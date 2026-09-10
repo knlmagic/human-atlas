@@ -5,14 +5,12 @@ export {LESSONS, REGIONS, TRAINING_SYSTEMS} from './training-data';
 export type {Lesson, Region, RegionId} from './training-data';
 export type {LayerMode} from './anatomy';
 
-const MISPLACED_MUSCLE = /levator scapulae|subscapularis|iliotibial|tibialis|fibularis|popliteus|plantaris/i;
-
 export function isTrainingMuscle(part: Part) {
-  return part.system === 'muscular' || part.system === 'connective' || MISPLACED_MUSCLE.test(part.name);
+  return part.system === 'muscular' || part.system === 'connective';
 }
 
 export function isTrainingBone(part: Part) {
-  return part.system === 'skeletal' && !MISPLACED_MUSCLE.test(part.name);
+  return part.system === 'skeletal';
 }
 
 export function isTrainingPart(part: Part) {
