@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import zlib from 'node:zlib';
+import {ANATOMY_SYSTEM_CORRECTIONS} from './anatomy-system-corrections.mjs';
 
 const filename=process.argv[2]??'atlas.json';
 const base=new URL('../public/models/',import.meta.url),atlas=JSON.parse(fs.readFileSync(new URL(filename,base)));
@@ -46,6 +47,12 @@ for(const c of atlas.concepts){
 assert.equal(tris,atlas.triangles);
 const concepts=new Map(atlas.concepts.map(concept=>[concept.id,concept]));
 for(const conceptId of historicalConcepts)assert.ok(concepts.has(conceptId),`missing ${conceptId}`);
+for(const [partId,correction] of ANATOMY_SYSTEM_CORRECTIONS){
+ const part=atlas.parts.find(candidate=>candidate.id===partId);
+ assert.ok(part,`missing corrected system part ${partId}`);
+ assert.equal(part.name,correction.name,`${partId}: unexpected anatomy`);
+ assert.equal(part.system,correction.system,`${partId}: incorrect display system`);
+}
 for(const [partId,expected] of historicalParts){
  const part=atlas.parts.find(candidate=>candidate.id===partId);
  assert.ok(part,`missing ${partId}`);

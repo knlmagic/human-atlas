@@ -232,4 +232,20 @@ describe('therapist outcome: learn proper and simple muscle names', () => {
    'BP3D3-FMA13378',
   ]);
  });
+
+ it('uses muscle rendering for every corrected skeletal-muscle mesh', () => {
+  const muscleIds = [
+   'FJ1409', 'FJ1409M', 'FJ1410', 'FJ1410M', 'FJ1411', 'FJ1411M',
+   'FJ1438', 'FJ1438M', 'FJ1439', 'FJ1439M', 'FJ1440', 'FJ1440M',
+   'FJ1504', 'FJ1504M', 'FJ1532', 'FJ1532M',
+  ];
+  for (const id of muscleIds) {
+   expect(atlas.parts.find(part => part.id === id)?.system, id).toBe('muscular');
+  }
+  for (const id of ['FJ1423', 'FJ1423M']) {
+   expect(atlas.parts.find(part => part.id === id)?.system, id).toBe('connective');
+  }
+  const training = readFileSync(new URL('./training.ts', import.meta.url), 'utf8');
+  expect(training).not.toContain('MISPLACED_MUSCLE');
+ });
 });

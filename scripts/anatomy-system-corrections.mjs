@@ -1,0 +1,21 @@
+/** Reviewed corrections for BodyParts3D parts with incorrect display systems. */
+export const ANATOMY_SYSTEM_CORRECTIONS = new Map([
+ ['FJ1409', {name: 'Right fibularis brevis', system: 'muscular'}],
+ ['FJ1409M', {name: 'Left fibularis brevis', system: 'muscular'}],
+ ['FJ1410', {name: 'Right fibularis longus', system: 'muscular'}],
+ ['FJ1410M', {name: 'Left fibularis longus', system: 'muscular'}],
+ ['FJ1411', {name: 'Right fibularis tertius', system: 'muscular'}],
+ ['FJ1411M', {name: 'Left fibularis tertius', system: 'muscular'}],
+ ['FJ1438', {name: 'Right tensor fasciae latae', system: 'muscular'}],
+ ['FJ1438M', {name: 'Left tensor fasciae latae', system: 'muscular'}],
+ ['FJ1439', {name: 'Right tibialis anterior', system: 'muscular'}],
+ ['FJ1439M', {name: 'Left tibialis anterior', system: 'muscular'}],
+ ['FJ1440', {name: 'Right tibialis posterior', system: 'muscular'}],
+ ['FJ1440M', {name: 'Left tibialis posterior', system: 'muscular'}],
+ ['FJ1504', {name: 'Right subscapularis', system: 'muscular'}],
+ ['FJ1504M', {name: 'Left subscapularis', system: 'muscular'}],
+ ['FJ1532', {name: 'Right levator scapulae', system: 'muscular'}],
+ ['FJ1532M', {name: 'Left levator scapulae', system: 'muscular'}],
+ ['FJ1423', {name: 'Right iliotibial tract', system: 'connective'}],
+ ['FJ1423M', {name: 'Left iliotibial tract', system: 'connective'}],
+]);
