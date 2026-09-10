@@ -14,6 +14,7 @@ import InstallCoach from './install-coach';
 import GuidedMenu from './guided-menu';
 import RoutineGuide from './routine-guide';
 import DiscomfortGuide from './discomfort-guide';
+import BasicMuscleGuide from './basic-muscle-guide';
 import {DEFAULT_VISIBLE, type Atlas, type Concept, type LayerMode, type SceneState} from './anatomy';
 import {
  LESSONS,
@@ -426,6 +427,7 @@ export default function Home() {
      exercisesCompleted={trainingProgress.discomfortExercisesCompleted}
      onRoutine={startRoutine}
      onDiscomfort={startDiscomfort}
+     onNames={() => setGuideMode('names')}
      onExit={leaveGuided}
     />
    )}
@@ -444,6 +446,12 @@ export default function Home() {
      onRegion={pickRegion}
      onComplete={completeDiscomfortExercise}
      onTechnique={item => { setGuideMode('explore'); chooseLesson(item); }}
+     onExit={() => setGuideMode('menu')}
+    />
+   )}
+   {guideMode === 'names' && (
+    <BasicMuscleGuide
+     onLesson={item => { setGuideMode('explore'); chooseLesson(item); }}
      onExit={() => setGuideMode('menu')}
     />
    )}

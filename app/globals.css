@@ -211,6 +211,12 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
 .guided-choices>button span{display:flex;flex:1;flex-direction:column;gap:4px}
 .guided-choices strong{font-size:13px;font-weight:600;color:#344451}
 .guided-choices small{font-size:11px;line-height:1.4;color:#77838e}
+.basic-name-list{gap:5px}
+.basic-name-list>button,.basic-name-row{display:flex;align-items:center;gap:8px;width:100%;min-height:52px;padding:9px 10px;border-bottom:1px solid #18253610;text-align:left}
+.basic-name-list>button span,.basic-name-row>span{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.basic-name-list strong{font-size:13px;font-weight:600;color:#344451}
+.basic-name-list small{font-size:11px;line-height:1.35;color:#74818d}
+.basic-name-list .model-note{max-width:86px;text-align:right;font-size:9px;color:#986052}
 .guided-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .guided-options button{min-height:42px;height:auto;white-space:normal;padding:8px;border-radius:9px;background:#edf0f2;color:#53616e;font-size:12px}
 .guided-options button[aria-pressed=true]{background:#263b48;color:#fff}

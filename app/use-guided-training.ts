@@ -4,7 +4,7 @@ import {LESSONS, partsForLesson, type Lesson, type RegionId} from './training';
 import {BEGINNER_FULL_BODY_ROUTINE, clampRoutineStep} from './routine';
 import {loadTrainingProgress, saveTrainingProgress, type TrainingProgress} from './training-progress';
 
-export type GuideMode = 'explore' | 'menu' | 'routine' | 'discomfort';
+export type GuideMode = 'explore' | 'menu' | 'routine' | 'discomfort' | 'names';
 
 interface GuideDependencies {
  atlas: Atlas | null;

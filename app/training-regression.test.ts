@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import type {Atlas} from './anatomy';
+import {BASIC_MUSCLE_NAMES} from './basic-muscle-names';
 import {
  CAMERA_VIEWS,
  cameraAim,
@@ -170,5 +171,38 @@ describe('therapist outcome: follow a guide without losing the body', () => {
   expect(page).toContain("guideMode === 'discomfort'");
   expect(styles).toContain('.studio.is-guided .bottom-dock');
   expect(styles).not.toMatch(/\.studio\.is-guided\s+\.scene(?:\s|,|\{)[^}]*display\s*:\s*none/);
+ });
+});
+
+describe('therapist outcome: learn proper and simple muscle names', () => {
+ it('teaches the requested basic therapy vocabulary', () => {
+  expect(BASIC_MUSCLE_NAMES.map(item => [item.properName, item.therapyName])).toEqual([
+   ['Biceps brachii', 'Arm flexor'],
+   ['Triceps brachii', 'Arm extender'],
+   ['Deltoid', 'Shoulder cap'],
+   ['Pectoralis major', 'Chest muscle'],
+   ['Trapezius', 'Upper back and neck muscle'],
+   ['Latissimus dorsi', 'Wing muscle'],
+   ['Rectus abdominis', 'Six-pack muscle'],
+   ['Gluteus maximus', 'Hip and buttock muscle'],
+   ['Quadriceps', 'Front thigh muscle'],
+   ['Hamstrings', 'Back thigh muscles'],
+   ['Gastrocnemius', 'Calf muscle'],
+  ]);
+ });
+
+ it('opens a real 3D lesson when the model contains the muscle', () => {
+  for (const name of BASIC_MUSCLE_NAMES.filter(item => item.lessonId)) {
+   const lesson = LESSONS.find(item => item.id === name.lessonId);
+   expect(lesson, name.properName).toBeDefined();
+   expect(partsForLesson(atlas, lesson!).length, name.properName).toBeGreaterThan(0);
+  }
+ });
+
+ it('labels absent model anatomy instead of pretending it can highlight it', () => {
+  const unavailable = BASIC_MUSCLE_NAMES.filter(item => !item.lessonId).map(item => item.properName);
+  expect(unavailable).toEqual(['Latissimus dorsi', 'Rectus abdominis']);
+  const guide = readFileSync(new URL('./basic-muscle-guide.tsx', import.meta.url), 'utf8');
+  expect(guide).toContain('Not shown in this 3D model');
  });
 });
