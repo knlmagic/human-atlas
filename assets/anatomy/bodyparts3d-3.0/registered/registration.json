@@ -1,0 +1,235 @@
+{
+  "source": {
+    "dataset": "BodyParts3D 3.0 obj_99",
+    "archive": "BodyParts3D_3.0_obj_99.zip",
+    "archiveSha256": "2125f6d761b14ead4ee64f71713f56f3f0f29982693ff20aac63474470cb92f4",
+    "license": "CC BY-SA 2.1 Japan"
+  },
+  "target": {
+    "dataset": "BodyParts3D 4.0",
+    "atlas": "atlas.json"
+  },
+  "method": "Piecewise-linear torso warp derived from matching bilateral and midline bony landmark bounds",
+  "anchors": [
+    {
+      "name": "Lower pelvis",
+      "source_y": 0.8370282000000001,
+      "target_y": 0.8300622000000001,
+      "x_scale": 1.1008251646718537,
+      "x_offset": -0.0004250243672533928,
+      "z_scale": 0.9977396578754028,
+      "z_offset": -0.012927145761623505
+    },
+    {
+      "name": "Hip bones",
+      "source_y": 0.9411807000000001,
+      "target_y": 0.9331317000000001,
+      "x_scale": 1.1008251646718537,
+      "x_offset": -0.0004250243672533928,
+      "z_scale": 0.9977396578754028,
+      "z_offset": -0.012927145761623505
+    },
+    {
+      "name": "Fifth lumbar vertebra",
+      "source_y": 1.0167232,
+      "target_y": 1.0078252,
+      "x_scale": 0.9982699511457231,
+      "x_offset": 0.0007515109803014626,
+      "z_scale": 1.0067066867597423,
+      "z_offset": -0.010721776182232582
+    },
+    {
+      "name": "Third lumbar vertebra",
+      "source_y": 1.0761851999999998,
+      "target_y": 1.0668227,
+      "x_scale": 0.9913561619954573,
+      "x_offset": 0.00044498276098633885,
+      "z_scale": 1.039182880884817,
+      "z_offset": -0.0018382023984775328
+    },
+    {
+      "name": "First lumbar vertebra",
+      "source_y": 1.1338211999999999,
+      "target_y": 1.1217012,
+      "x_scale": 1.0135727540598496,
+      "x_offset": 0.001345038763877945,
+      "z_scale": 0.9979992165981707,
+      "z_offset": -0.0002664603492977327
+    },
+    {
+      "name": "Twelfth thoracic vertebra",
+      "source_y": 1.1677862,
+      "target_y": 1.1538861999999999,
+      "x_scale": 0.9613245730699352,
+      "x_offset": -7.799808979638628e-05,
+      "z_scale": 1.007611017439891,
+      "z_offset": 1.364140526430302e-05
+    },
+    {
+      "name": "Tenth thoracic vertebra",
+      "source_y": 1.2245662,
+      "target_y": 1.2065612,
+      "x_scale": 0.9376182657860813,
+      "x_offset": 0.0010522342483488979,
+      "z_scale": 1.0134212146703094,
+      "z_offset": 0.00028693001597326906
+    },
+    {
+      "name": "Body of sternum",
+      "source_y": 1.3229411999999998,
+      "target_y": 1.3127562,
+      "x_scale": 1.0176269881167574,
+      "x_offset": 0.0008742934690297698,
+      "z_scale": 1.1666027423530536,
+      "z_offset": -0.01047652181417201
+    },
+    {
+      "name": "Scapulae",
+      "source_y": 1.3587862,
+      "target_y": 1.3450161999999999,
+      "x_scale": 0.9907303529607818,
+      "x_offset": 0.0006514052070717056,
+      "z_scale": 0.977458162784801,
+      "z_offset": 0.003758878104964322
+    },
+    {
+      "name": "Clavicles",
+      "source_y": 1.4274411999999999,
+      "target_y": 1.4100962,
+      "x_scale": 0.9682493982316883,
+      "x_offset": -7.638035105090408e-06,
+      "z_scale": 0.9316695581202268,
+      "z_offset": 0.0035075414449494756
+    }
+  ],
+  "outputs": [
+    {
+      "id": "FMA13358",
+      "name": "Right latissimus dorsi",
+      "sourceSha256": "07082eb26856a47e408aa7915012140fc03ac8620baadec13fcde760ad369f9f",
+      "outputSha256": "515ebf7f678b5730a6fb76498f24ae62a49d2c9da5f4638b9438902afa7c8c5d",
+      "vertexCount": 29667,
+      "faceCount": 45594,
+      "sourceBounds": [
+        [
+          -0.17936500000000002,
+          0.9669572000000001,
+          -0.11828520000000001
+        ],
+        [
+          0.00154922,
+          1.3643012,
+          -0.01890860000000001
+        ]
+      ],
+      "registeredBounds": [
+        [
+          -0.17943510125218487,
+          0.9586185054770495,
+          -0.1398973484125438
+        ],
+        [
+          0.002073807710644718,
+          1.3502440231738402,
+          -0.014688358590445
+        ]
+      ]
+    },
+    {
+      "id": "FMA13359",
+      "name": "Left latissimus dorsi",
+      "sourceSha256": "fad8dab60f63bceaed0dbee8b1bd6f11162176c4bc8ebd63844904b05bcbb671",
+      "outputSha256": "57e13242d4b06e5ba21e8836c5ebf26701c82b03bbeb715fc4e5ab7e33403915",
+      "vertexCount": 29826,
+      "faceCount": 45572,
+      "sourceBounds": [
+        [
+          -0.000922961,
+          0.9669572000000001,
+          -0.11827580000000001
+        ],
+        [
+          0.17874600000000002,
+          1.3642712000000001,
+          -0.018689800000000006
+        ]
+      ],
+      "registeredBounds": [
+        [
+          -0.0009431229716597401,
+          0.9586185054770495,
+          -0.13990790713302076
+        ],
+        [
+          0.18043054305163878,
+          1.3502155853324596,
+          -0.014688358590445
+        ]
+      ]
+    },
+    {
+      "id": "FMA13377",
+      "name": "Right rectus abdominis",
+      "sourceSha256": "b00b3d214f6ee3b4fc16ca9dd4e64b4ac3047862a2bfcb6c06b50e371d621772",
+      "outputSha256": "979f9b444a7bdceaaaafa2bfd84b94802f31d495bf18dc323d6d9538849a3504",
+      "vertexCount": 25972,
+      "faceCount": 41920,
+      "sourceBounds": [
+        [
+          -0.0797234,
+          0.8875112000000001,
+          0.041495000000000004
+        ],
+        [
+          -0.00353594,
+          1.2832612,
+          0.11373599999999998
+        ]
+      ],
+      "registeredBounds": [
+        [
+          -0.07590271990503869,
+          0.8800202669547059,
+          0.028474061341916334
+        ],
+        [
+          -0.004317476100023187,
+          1.2699219677255402,
+          0.11513477447356472
+        ]
+      ]
+    },
+    {
+      "id": "FMA13378",
+      "name": "Left rectus abdominis",
+      "sourceSha256": "b8029d562de3ef08af46414a004bd4d4bd569da72849bcb00c4f4e5b610c8b4f",
+      "outputSha256": "f720b79bb68d691255c29483cfaf1f8a5a7e55e6d890263dcb01c7b4bd387d81",
+      "vertexCount": 23639,
+      "faceCount": 41406,
+      "sourceBounds": [
+        [
+          -0.00664754,
+          0.8879112,
+          0.041489
+        ],
+        [
+          0.07841719999999999,
+          1.2832512,
+          0.11375200000000002
+        ]
+      ],
+      "registeredBounds": [
+        [
+          -0.005395238816346564,
+          0.880416107669043,
+          0.02846807490396908
+        ],
+        [
+          0.07643293722772256,
+          1.2699111728081323,
+          0.11516006125731816
+        ]
+      ]
+    }
+  ]
+}

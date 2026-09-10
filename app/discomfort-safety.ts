@@ -57,7 +57,7 @@ export function evaluateDiscomfort(answers: DiscomfortAnswers): DiscomfortResult
   reasons: answers.qualities,
   lessonId,
   technique: lesson?.work ?? 'Use slow, broad strokes over the muscle.',
-  pressure: answers.region === 'neck' || answers.region === 'chest' ? 'Light only' : 'Light to medium',
+  pressure: answers.region === 'neck' || answers.region === 'chest' || answers.region === 'abdomen' ? 'Light only' : 'Light to medium',
   minutes: 3,
   reassess: 'Stop after a few minutes and ask whether it feels easier, the same, or worse. Stop if it becomes sharper or travels.',
  };

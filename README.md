@@ -37,9 +37,9 @@ Validation covers mesh buffers, names and concept membership, nonoverlapping exp
 
 ## Anatomy data
 
-The current viewer uses **BodyParts3D 4.0**, an adult male reference anatomy, licensed **CC BY 4.0**. It does not represent every human structure or variation. Individual source meshes are distinct from named concepts, which may group multiple meshes. Descriptions distinguish general system context from individual organ explanations.
+The current viewer uses **BodyParts3D 4.0**, an adult male reference anatomy, licensed **CC BY 4.0**, with four registered historical BodyParts3D 3.0 muscle meshes under **CC BY-SA 2.1 Japan**. It does not represent every human structure or variation. Individual source meshes are distinct from named concepts, which may group multiple meshes. Descriptions distinguish general system context from individual organ explanations.
 
-Geometry is simplified for browser performance while retaining every source mesh. The packaged model contains 2,288,268 triangles and downloads approximately 33 MB of compressed geometry. Full credits, source links, and adaptation details are in [ATTRIBUTION.md](public/ATTRIBUTION.md).
+Geometry is simplified for browser performance while retaining every source mesh. The packaged model contains 2,326,652 triangles and downloads approximately 34 MB of compressed geometry. Full credits, source links, and adaptation details are in [ATTRIBUTION.md](public/ATTRIBUTION.md).
 
 This is an educational explorer, not a diagnostic or surgical tool.
 
@@ -53,12 +53,22 @@ The optional WebMCP tools expose anatomy search and inspection in compatible bro
 
 The repository includes browser-ready geometry. Rebuilding it is optional: obtain the official BodyParts3D OBJ archive and English metadata tables, prepare the joined concepts and display-system mappings, run `scripts/convert-anatomy.py`, then `node scripts/optimize-anatomy.mjs` and `node scripts/compress-models.mjs`. Simplification uses a 0.2% relative error limit per structure.
 
+The registered latissimus dorsi and rectus abdominis additions can be reproduced without the unavailable 4.0 mapping inputs. Download the official `BodyParts3D_3.0_obj_99.zip` archive, restore the base 4.0 atlas, then run:
+
+```sh
+python3 scripts/register-missing-muscles.py /path/to/BodyParts3D_3.0_obj_99.zip
+node scripts/augment-missing-muscles.mjs
+node scripts/validate-atlas.mjs
+```
+
+The registration script verifies the official archive checksum and records the landmark transform, source checksums, output checksums, and geometry bounds.
+
 ## Deploy
 
 Import this repository into Vercel as a Vite project. The included `vercel.json` configures `npm ci`, `npm run build`, and the `dist` output directory. It can also be served by a static host.
 
 ## License
 
-Original application code is released under the [MIT License](LICENSE). **The anatomy data has its own CC BY 4.0 license**; preserve the attribution when redistributing it. Third-party dependencies retain their respective licenses.
+Original application code is released under the [MIT License](LICENSE). **The anatomy data has separate Creative Commons licenses**: BodyParts3D 4.0 is CC BY 4.0, while the four registered BodyParts3D 3.0 additions are CC BY-SA 2.1 Japan. Preserve the attribution and ShareAlike terms when redistributing them. Third-party dependencies retain their respective licenses.
 
 Issues and pull requests are welcome. Please include reproduction steps and browser/device details for interaction problems.

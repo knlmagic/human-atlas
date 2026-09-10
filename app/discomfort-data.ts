@@ -35,6 +35,7 @@ export const SAFE_LESSON_BY_REGION: Record<RegionId, string> = {
  shoulders: 'infraspinatus',
  back: 'erectors',
  chest: 'pecs',
+ abdomen: 'rectus-abdominis',
  arms: 'wrist-flexors',
  hips: 'glute-med',
  thighs: 'quads',

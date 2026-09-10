@@ -1,6 +1,6 @@
 # Anatomy data attribution
 
-BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International.
+BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International, except for the four historical meshes identified below.
 
 - License: https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html (updated 2025-02-27)
 - Dataset: https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html
@@ -14,6 +14,24 @@ Adaptations: axes and units converted from millimeters/Z-up to meters/Y-up; tran
 Source OBJ comments mention an older CC BY-SA 2.1 Japan license. The official current database license linked above supersedes that legacy text and explicitly permits redistribution and adaptation under CC BY 4.0.
 
 BodyParts3D represents an adult male reference anatomy based on TARO MRI and anatomical illustration refinements. It is not a complete model of every possible human anatomical structure or variation. This interface is educational and is not a clinical tool.
+
+## BodyParts3D 3.0 additions
+
+The current BodyParts3D 4.0 archive omits latissimus dorsi and rectus abdominis. This project therefore includes four meshes from the official `BodyParts3D_3.0_obj_99.zip` release:
+
+- `FMA13358`: right latissimus dorsi
+- `FMA13359`: left latissimus dorsi
+- `FMA13377`: right rectus abdominis
+- `FMA13378`: left rectus abdominis
+
+These four source meshes and their adaptations are licensed under [CC Attribution-ShareAlike 2.1 Japan](https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en). The application source code remains MIT licensed; the ShareAlike terms apply to these anatomy-data derivatives.
+
+- Official release: https://dbarchive.biosciencedbc.jp/data/bodyparts3d/20110915/
+- Archive SHA-256: `2125f6d761b14ead4ee64f71713f56f3f0f29982693ff20aac63474470cb92f4`
+- Reproducible registration: `scripts/register-missing-muscles.py`
+- Registration record and transformed source meshes: `assets/anatomy/bodyparts3d-3.0/registered/`
+
+Adaptations: source axes and units converted from millimeters/Z-up to meters/Y-up; torso proportions registered to the 4.0 atlas with a piecewise-linear warp derived from shared hip, vertebral, sternal, scapular, and clavicular landmarks; geometry simplified; normals regenerated and quantized; and meshes packed into a separate binary atlas chunk. Source and output checksums, bounds, and landmark transforms are recorded in `registration.json`.
 
 ## Historical assets (not included in the current release)
 
