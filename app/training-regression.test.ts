@@ -191,18 +191,44 @@ describe('therapist outcome: learn proper and simple muscle names', () => {
   ]);
  });
 
- it('opens a real 3D lesson when the model contains the muscle', () => {
-  for (const name of BASIC_MUSCLE_NAMES.filter(item => item.lessonId)) {
+ it('opens a real 3D lesson for every requested muscle name', () => {
+  for (const name of BASIC_MUSCLE_NAMES) {
    const lesson = LESSONS.find(item => item.id === name.lessonId);
    expect(lesson, name.properName).toBeDefined();
    expect(partsForLesson(atlas, lesson!).length, name.properName).toBeGreaterThan(0);
   }
  });
 
- it('labels absent model anatomy instead of pretending it can highlight it', () => {
-  const unavailable = BASIC_MUSCLE_NAMES.filter(item => !item.lessonId).map(item => item.properName);
-  expect(unavailable).toEqual(['Latissimus dorsi', 'Rectus abdominis']);
+ it('does not mark any requested muscle as unavailable', () => {
   const guide = readFileSync(new URL('./basic-muscle-guide.tsx', import.meta.url), 'utf8');
-  expect(guide).toContain('Not shown in this 3D model');
+  expect(guide).not.toContain('Not shown in this 3D model');
+  expect(BASIC_MUSCLE_NAMES.every(item => Boolean(item.lessonId))).toBe(true);
+ });
+
+ it('maps the restored bilateral meshes to correct FMA concepts and body regions', () => {
+  const restored = [
+   ['BP3D3-FMA13358', 'FMA13358', 'right', 'back'],
+   ['BP3D3-FMA13359', 'FMA13359', 'left', 'back'],
+   ['BP3D3-FMA13377', 'FMA13377', 'right', 'front'],
+   ['BP3D3-FMA13378', 'FMA13378', 'left', 'front'],
+  ] as const;
+  for (const [id, conceptId, side, surface] of restored) {
+   const part = atlas.parts.find(candidate => candidate.id === id);
+   expect(part, id).toBeDefined();
+   expect(part?.conceptId).toBe(conceptId);
+   expect(part?.system).toBe('muscular');
+   expect(part?.indexCount).toBeGreaterThan(288);
+   const centerX = (part!.bounds[0][0] + part!.bounds[1][0]) / 2;
+   expect(side === 'right' ? centerX < 0 : centerX > 0).toBe(true);
+   expect(surface === 'back' ? part!.bounds[1][2] < 0.02 : part!.bounds[1][2] > 0.08).toBe(true);
+  }
+  expect(atlas.concepts.find(concept => concept.id === 'FMA13357')?.elements).toEqual([
+   'BP3D3-FMA13358',
+   'BP3D3-FMA13359',
+  ]);
+  expect(atlas.concepts.find(concept => concept.id === 'FMA9628')?.elements).toEqual([
+   'BP3D3-FMA13377',
+   'BP3D3-FMA13378',
+  ]);
  });
 });

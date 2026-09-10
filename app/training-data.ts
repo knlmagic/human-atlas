@@ -1,6 +1,6 @@
 import type {View} from './anatomy';
 
-export type RegionId = 'neck'|'shoulders'|'back'|'chest'|'arms'|'hips'|'thighs'|'legs';
+export type RegionId = 'neck'|'shoulders'|'back'|'chest'|'abdomen'|'arms'|'hips'|'thighs'|'legs';
 
 export interface Region {
  id: RegionId;
@@ -72,6 +72,15 @@ export const REGIONS: Region[] = [
   caution: 'Do not work on the breast. Stay on the upper chest and around the collarbone. Always ask first.',
   bounds: {y0: 1.16, y1: 1.46, x1: 0.2, z0: 0},
   extra: ['pectoralis','serratus anterior','sternum','clavicle'],
+ },
+ {
+  id: 'abdomen',
+  name: 'Abdomen',
+  hint: 'Only light work, with clear permission.',
+  view: 'front',
+  caution: 'Do not treat unexplained belly pain. Skip this area during pregnancy, after recent surgery, or soon after a meal.',
+  bounds: {y0: 0.84, y1: 1.3, x1: 0.11, z0: 0.015},
+  extra: ['rectus abdominis'],
  },
  {
   id: 'arms',
@@ -286,6 +295,20 @@ export const LESSONS: Lesson[] = [
   careful: 'Do not press the low back next to the waist as if you are pushing on the organs.',
  },
  {
+  id: 'lats',
+  region: 'back',
+  title: 'Latissimus dorsi',
+  also: 'Wing muscle',
+  aliases: ['latissimus', 'latissimus dorsi', 'lats', 'wing muscle', 'side of back'],
+  match: {all: ['latissimus dorsi']},
+  does: 'Pulls the arm down and back, as when rowing or climbing.',
+  from: 'The lower spine, back of the hip, and lower ribs',
+  to: 'The front of the upper arm',
+  find: 'The broad wing from the lower back up toward the armpit.',
+  work: 'Use broad, slow strokes from the waist upward and outward toward the armpit.',
+  careful: 'Stay off the spine and use light pressure over the lower ribs and kidney area.',
+ },
+ {
   id: 'pecs',
   region: 'chest',
   title: 'Pectoralis major',
@@ -298,6 +321,20 @@ export const LESSONS: Lesson[] = [
   find: 'Under the collarbone, on the upper chest. Stay high, away from the breast.',
   work: 'With permission, stroke from the breastbone out toward the shoulder.',
   careful: 'Do not work on the breast. Stop if the client feels shy or sore.',
+ },
+ {
+  id: 'rectus-abdominis',
+  region: 'abdomen',
+  title: 'Rectus abdominis',
+  also: 'Six-pack muscle',
+  aliases: ['rectus abdominis', 'six-pack', 'six pack', 'abdominals', 'abs'],
+  match: {all: ['rectus abdominis']},
+  does: 'Bends the body forward and helps support the abdomen.',
+  from: 'The pubic bone at the front of the pelvis',
+  to: 'The breastbone and lower ribs',
+  find: 'Two long strips on either side of the middle line of the abdomen.',
+  work: 'With clear permission, use only light, broad strokes along the muscle.',
+  careful: 'Never press deeply. Skip unexplained pain, pregnancy, recent surgery, or work soon after a meal.',
  },
  {
   id: 'serratus',

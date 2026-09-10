@@ -8,6 +8,8 @@ interface Props {
  onExit: () => void;
 }
 
+const LESSON_BY_ID = new Map(LESSONS.map(lesson => [lesson.id, lesson]));
+
 export default function BasicMuscleGuide({onLesson, onExit}: Props) {
  return (
   <aside className="guided-panel basic-names-panel glass" aria-label="Basic muscle names">
@@ -21,16 +23,17 @@ export default function BasicMuscleGuide({onLesson, onExit}: Props) {
    <p className="guided-intro">Say the proper name first. The simple name helps clients understand where you mean.</p>
    <div className="guided-scroll basic-name-list" role="list">
     {BASIC_MUSCLE_NAMES.map(item => {
-     const lesson = item.lessonId ? LESSONS.find(candidate => candidate.id === item.lessonId) : undefined;
-     const content = (
-      <>
+     const lesson = LESSON_BY_ID.get(item.lessonId);
+     if (!lesson) {
+      console.error(`Basic muscle lesson is missing: ${item.lessonId}`);
+      return null;
+     }
+     return (
+      <Button key={item.properName} variant="ghost" role="listitem" onClick={() => onLesson(lesson)}>
        <span><strong>{item.properName}</strong><small>{item.therapyName}</small></span>
-       {lesson ? <ChevronRight size={16} /> : <small className="model-note">Not shown in this 3D model</small>}
-      </>
+       <ChevronRight size={16} />
+      </Button>
      );
-     return lesson
-      ? <Button key={item.properName} variant="ghost" role="listitem" onClick={() => onLesson(lesson)}>{content}</Button>
-      : <div className="basic-name-row" role="listitem" aria-label={`${item.properName}, ${item.therapyName}, not shown in this 3D model`} key={item.properName}>{content}</div>;
     })}
    </div>
   </aside>

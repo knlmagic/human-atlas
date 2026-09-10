@@ -502,10 +502,11 @@ export default function Home() {
       <p><strong>iPhone:</strong> tap Share, then Add to Home Screen. Open it from the home screen like an app.</p>
       <p><strong>Android:</strong> in Chrome, tap the menu, then Add to Home screen.</p>
       <p>Load it once on Wi‑Fi. After that, the body areas you have opened can work with weak data.</p>
-      <p>The body is an adult male reference. Some muscles used in massage, such as the large back muscle (latissimus) and the deep waist muscle, are not in this model.</p>
+      <p>The body is an adult male reference for learning. It cannot show every anatomical variation.</p>
       <h3>Source</h3>
-      <p>BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International.</p>
+      <p>BodyParts3D, © The Database Center for Life Science. The main atlas is CC BY 4.0. Registered historical latissimus dorsi and rectus abdominis meshes are CC BY-SA 2.1 Japan.</p>
       <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html" target="_blank" rel="noreferrer">Dataset license <ArrowUpRight size={14} /></a>
+      <a href="https://creativecommons.org/licenses/by-sa/2.1/jp/deed.en" target="_blank" rel="noreferrer">Historical mesh license <ArrowUpRight size={14} /></a>
       <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/download.html" target="_blank" rel="noreferrer">Original geometry & metadata <ArrowUpRight size={14} /></a>
      </div>
     </SheetContent>
