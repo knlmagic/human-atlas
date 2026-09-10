@@ -160,3 +160,15 @@ describe('therapist outcome: learn how to find the muscle and ease it', () => {
   expect(searchTraining(atlas, 'neck').length).toBeGreaterThan(0);
  });
 });
+
+describe('therapist outcome: follow a guide without losing the body', () => {
+ it('keeps the atlas mounted while guided panels replace secondary controls', () => {
+  const page = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
+  const styles = readFileSync(new URL('./globals.css', import.meta.url), 'utf8');
+  expect(page).toContain('<AnatomyScene');
+  expect(page).toContain("guideMode === 'routine'");
+  expect(page).toContain("guideMode === 'discomfort'");
+  expect(styles).toContain('.studio.is-guided .bottom-dock');
+  expect(styles).not.toMatch(/\.studio\.is-guided\s+\.scene(?:\s|,|\{)[^}]*display\s*:\s*none/);
+ });
+});

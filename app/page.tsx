@@ -2,7 +2,7 @@ import {flushSync} from 'react-dom';
 import {registerAtlasTools} from './agent-tools';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useIsMobile} from '@/hooks/use-mobile';
-import {Activity, ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Focus, Info, Pause, RotateCcw, RotateCw, Search, X} from 'lucide-react';
+import {Activity, ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Focus, GraduationCap, Info, Pause, RotateCcw, RotateCw, Search, X} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {Sheet, SheetContent, SheetTitle, SheetDescription} from '@/components/ui/sheet';
@@ -11,6 +11,9 @@ import AnatomyScene from './scene';
 import TrainingPanel, {AreaChips} from './training-panel';
 import TrainingCard from './training-card';
 import InstallCoach from './install-coach';
+import GuidedMenu from './guided-menu';
+import RoutineGuide from './routine-guide';
+import DiscomfortGuide from './discomfort-guide';
 import {DEFAULT_VISIBLE, type Atlas, type Concept, type LayerMode, type SceneState} from './anatomy';
 import {
  LESSONS,
@@ -25,6 +28,8 @@ import {
  type RegionId,
 } from './training';
 import {CAMERA_VIEWS, regionForPart, shouldReframeArea, visibleIdsForStudio} from './studio';
+import {BEGINNER_FULL_BODY_ROUTINE} from './routine';
+import {useGuidedTraining} from './use-guided-training';
 
 const initial: SceneState = {
  explode: 0,
@@ -54,6 +59,25 @@ export default function Home() {
  const [chosen, setChosen] = useState<Concept | null>(null);
  const [region, setRegion] = useState<RegionId | null>(null);
  const [boot, setBoot] = useState(false);
+ const {
+  guideMode,
+  setGuideMode,
+  routineStepIndex,
+  trainingProgress,
+  startRoutine,
+  moveRoutine,
+  completeDiscomfortExercise,
+  startDiscomfort,
+  leaveGuided,
+ } = useGuidedTraining({
+  atlas,
+  setRegion,
+  setChosen,
+  setDetails,
+  setLessonOpen,
+  setPanel,
+  setSceneState: setState,
+ });
  const isMobile = useIsMobile();
  const phone = boot && isMobile;
 
@@ -86,6 +110,7 @@ export default function Home() {
   const key = (e: KeyboardEvent) => {
    if (e.key === '/' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
     e.preventDefault();
+    setGuideMode('explore');
     setPanel('search');
     setDetails(false);
     setLessonOpen(false);
@@ -203,6 +228,7 @@ export default function Home() {
 
  const setLayer = (layer: LayerMode) => setState(s => ({...s, layer, isolate: layer === 'muscle' ? s.isolate : false}));
  const openPanel = (next: 'layers' | 'search') => {
+  setGuideMode('explore');
   setDetails(false);
   setLessonOpen(false);
   setPanel(p => (p === next ? null : next));
@@ -280,7 +306,7 @@ export default function Home() {
  );
 
  return (
-  <main className={`studio ${studying ? 'is-studying' : ''} ${phone ? 'is-phone' : ''}`}>
+  <main className={`studio ${studying ? 'is-studying' : ''} ${guideMode !== 'explore' ? 'is-guided' : ''} ${phone ? 'is-phone' : ''}`}>
    {showScene && atlas && (
     <AnatomyScene
      atlas={atlas}
@@ -297,9 +323,12 @@ export default function Home() {
    <header className="identity">
     <div className="eyebrow"><span className="status-dot" /> MASSAGE PRACTICE</div>
     <h1>Human Atlas<Badge variant="outline" className="edition">3D</Badge></h1>
-    <div className="identity-meta">{studying ? 'Turn the body. The muscle stays highlighted.' : 'Tap a muscle to learn it'}</div>
+    <div className="identity-meta">{guideMode !== 'explore' ? 'Follow the guide while the body stays visible.' : studying ? 'Turn the body. The muscle stays highlighted.' : 'Tap a muscle to learn it'}</div>
    </header>
    <nav className="top-actions" aria-label="Practice panels">
+    <Button variant="ghost" className={guideMode !== 'explore' ? 'active' : ''} onClick={() => guideMode === 'explore' ? setGuideMode('menu') : leaveGuided()} aria-label="Guided practice">
+     <GraduationCap size={18} /><span>Guided practice</span>
+    </Button>
     <Button variant="ghost" className={panel === 'search' ? 'active' : ''} onClick={() => openPanel('search')} aria-label="Find a muscle">
      <Search size={18} /><span>Find a muscle</span><kbd>/</kbd>
     </Button>
@@ -307,7 +336,7 @@ export default function Home() {
      <Info size={18} />
     </Button>
    </nav>
-   <TrainingPanel
+   {guideMode === 'explore' && <TrainingPanel
     region={region}
     lessons={lessons}
     selectedId={lesson?.id}
@@ -317,8 +346,8 @@ export default function Home() {
     onClose={() => setPanel(null)}
     mobileOpen={panel === 'layers'}
     phone={phone}
-   />
-   {panel === 'search' && (
+   />}
+   {guideMode === 'explore' && panel === 'search' && (
     <section className="search-panel glass" aria-label="Find a muscle">
      <div className="panel-heading">
       <span>Find a muscle</span>
@@ -376,7 +405,7 @@ export default function Home() {
     <span>{caption}</span>
     <span className="caption-line" />
    </div>
-   {phone && !studying && <AreaChips region={region} onRegion={pickRegion} />}
+   {phone && !studying && guideMode === 'explore' && <AreaChips region={region} onRegion={pickRegion} />}
    <div className="bottom-dock glass">
     <div className="explode-control">
      <div className="explode-label"><label>What to see</label></div>
@@ -390,6 +419,34 @@ export default function Home() {
      <RotateCcw size={18} /><span>Reset</span>
     </Button>
    </div>
+   {guideMode === 'menu' && (
+    <GuidedMenu
+     routineStep={trainingProgress.routine.stepIndex}
+     routineCompleted={Boolean(trainingProgress.routine.completedAt)}
+     exercisesCompleted={trainingProgress.discomfortExercisesCompleted}
+     onRoutine={startRoutine}
+     onDiscomfort={startDiscomfort}
+     onExit={leaveGuided}
+    />
+   )}
+   {guideMode === 'routine' && (
+    <RoutineGuide
+     routine={BEGINNER_FULL_BODY_ROUTINE}
+     stepIndex={routineStepIndex}
+     completedStepIds={trainingProgress.routine.completedStepIds}
+     onStep={moveRoutine}
+     onExit={() => setGuideMode('menu')}
+    />
+   )}
+   {guideMode === 'discomfort' && (
+    <DiscomfortGuide
+     region={region}
+     onRegion={pickRegion}
+     onComplete={completeDiscomfortExercise}
+     onTechnique={item => { setGuideMode('explore'); chooseLesson(item); }}
+     onExit={() => setGuideMode('menu')}
+    />
+   )}
    <footer className="studio-footer">
     <span>Drag to turn <b>·</b> Pinch to zoom <b>·</b> Tap a muscle</span>
     <Button variant="ghost" onClick={() => { setDetails(false); setLessonOpen(false); setPanel(null); setAbout(true); }}>
@@ -445,7 +502,7 @@ export default function Home() {
      </div>
     </SheetContent>
    </Sheet>
-   <InstallCoach ready={boot && progress >= 100 && !studying} />
+   <InstallCoach ready={boot && progress >= 100 && !studying && guideMode === 'explore'} />
   </main>
  );
 }

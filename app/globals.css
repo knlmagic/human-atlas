@@ -184,3 +184,56 @@ h1 .edition{font-family:inherit;font-weight:500;font-size:10px;letter-spacing:.0
  .area-chips{left:auto;right:max(12px,env(safe-area-inset-right));top:70px;bottom:auto;width:min(320px,46vw);flex-wrap:wrap;overflow:visible}
  .lesson-dock,.lesson-dock.is-open{left:auto;right:max(10px,env(safe-area-inset-right));top:64px;bottom:12px;width:min(340px,46vw);max-height:none}
 }
+
+/* Guided training stays compact so the learner can follow the highlighted body. */
+.guided-panel{position:absolute;left:30px;top:165px;bottom:54px;width:350px;z-index:28;padding:20px;display:flex;flex-direction:column;gap:12px;border-radius:18px;background:#fffffff5;overflow:hidden}
+.guided-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0}
+.guided-header h2{font-size:22px;line-height:1.2;letter-spacing:-.5px;margin:5px 0 0;font-weight:600}
+.guided-kicker{font-size:9px;letter-spacing:.13em;font-weight:700;color:#667783;margin:0}
+.guided-progress{height:3px;background:#263b4812;border-radius:4px;overflow:hidden;flex-shrink:0}
+.guided-progress i{display:block;height:100%;background:#458a85;transition:width .2s}
+.guided-scroll{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:flex;flex-direction:column;gap:14px;padding-right:3px}
+.guided-meta{display:flex;gap:8px;flex-wrap:wrap}
+.guided-meta span{display:flex;align-items:center;gap:5px;background:#edf1f3;color:#53616e;border-radius:999px;padding:6px 9px;font-size:11px;text-transform:capitalize}
+.guided-facts{display:flex;flex-direction:column;gap:12px;margin:0}
+.guided-facts div{border-left:2px solid #458a8540;padding-left:10px}
+.guided-facts dt{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:#87929d;font-weight:700;margin-bottom:4px}
+.guided-facts dd{font-size:12px;line-height:1.55;color:#43515e;margin:0}
+.guided-cues{display:flex;flex-direction:column;gap:9px;margin:0;padding-left:25px}
+.guided-cues li{font-size:12px;line-height:1.5;color:#43515e;padding-left:3px}
+.guided-actions{display:flex;justify-content:flex-end;gap:7px;flex-shrink:0;border-top:1px solid #18253612;padding-top:10px}
+.guided-actions button{min-height:42px;padding-inline:12px;display:flex;align-items:center;gap:5px;font-size:12px}
+.guided-actions .primary-action{margin-left:auto}
+.guided-intro,.guided-note{font-size:12px;line-height:1.55;color:#65727e;margin:0}
+.guided-note{padding:4px 2px;color:#7b8791}
+.guided-choices{gap:8px}
+.guided-choices>button{display:flex;align-items:center;gap:12px;text-align:left;white-space:normal;width:100%;min-height:74px;padding:12px;border:1px solid #18253612;border-radius:12px}
+.guided-choices>button span{display:flex;flex:1;flex-direction:column;gap:4px}
+.guided-choices strong{font-size:13px;font-weight:600;color:#344451}
+.guided-choices small{font-size:11px;line-height:1.4;color:#77838e}
+.guided-options{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.guided-options button{min-height:42px;height:auto;white-space:normal;padding:8px;border-radius:9px;background:#edf0f2;color:#53616e;font-size:12px}
+.guided-options button[aria-pressed=true]{background:#263b48;color:#fff}
+.safety-options{display:flex;flex-direction:column;gap:6px}
+.safety-options button{min-height:43px;height:auto;justify-content:flex-start;text-align:left;white-space:normal;padding:9px 11px;border:1px solid #18253612;border-radius:9px;color:#485866;font-size:12px;line-height:1.4}
+.safety-options button[aria-pressed=true]{background:#f3e7e3;border-color:#a85b5060;color:#673f38}
+.discomfort-result{display:flex;flex-direction:column;gap:13px}
+.discomfort-result>p{font-size:13px;line-height:1.6;color:#485866;margin:0}
+.discomfort-result.is-technique{border-top:3px solid #458a85;padding-top:12px}
+.discomfort-result.is-avoid,.discomfort-result.is-refer{border-top:3px solid #a85b50;padding-top:12px}
+.studio.is-guided .bottom-dock,.studio.is-guided .scene-caption{display:none}
+
+@media(max-width:767px){
+ .studio.is-guided .identity-meta{max-width:210px}
+ .guided-panel{left:10px;right:10px;top:auto;bottom:calc(10px + env(safe-area-inset-bottom));width:auto;max-height:43dvh;padding:16px 14px 12px;border-radius:18px}
+ .guided-header h2{font-size:18px;margin-top:4px}
+ .guided-scroll{gap:11px}
+ .guided-actions{padding-top:8px}
+ .guided-options button{min-height:44px}
+ .guided-choices>button{min-height:68px}
+ .studio.is-guided .loading{bottom:calc(46dvh + env(safe-area-inset-bottom));}
+}
+@media(max-height:600px) and (orientation:landscape){
+ .guided-panel{left:auto;right:10px;top:64px;bottom:10px;width:min(350px,46vw);max-height:none}
+ body:has(.guided-panel) .top-actions{visibility:hidden}
+}
