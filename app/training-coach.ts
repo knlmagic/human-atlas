@@ -52,9 +52,17 @@ export const COACH: Record<string, {why: string; say: string}> = {
   why: 'These ropes hold you upright. Long standing and bending make them tight.',
   say: '"Long, slow strokes up the back. I will stay off the bones in the middle."',
  },
+ lats: {
+  why: 'Reaching, carrying, and working with the arms overhead make this wide back muscle tired.',
+  say: '"I will work the side of the back toward the armpit. Tell me if the lower ribs feel too much."',
+ },
  pecs: {
   why: 'Phones and desks pull the chest in. The muscle under the collarbone gets short.',
   say: '"I will stay on the upper chest, under the collarbone. Tell me if you want me to stop."',
+ },
+ 'rectus-abdominis': {
+  why: 'Sitting hunched, coughing, or holding the belly in can make these long front muscles tight.',
+  say: '"This is only light work on the belly. Tell me if you want me to stop."',
  },
  serratus: {
   why: 'Reaching, lifting, and side-sleeping can make the side of the ribs sore.',

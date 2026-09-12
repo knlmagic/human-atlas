@@ -17,6 +17,7 @@ import {
  trainingPartIds,
  visibleIdsForStudio,
 } from './studio';
+import {COACH} from './training-coach';
 import {
  INTRO_REGIONS,
  LESSONS,
@@ -145,6 +146,17 @@ describe('therapist outcome: learn how to find the muscle and ease it', () => {
    expect(lesson.does.length, lesson.id).toBeGreaterThan(12);
    expect(lesson.find).not.toMatch(/origin|insertion|proximal|distal/i);
    expect(partsForLesson(atlas, lesson).length, `${lesson.id} must map to the 3D body`).toBeGreaterThan(0);
+  }
+ });
+
+ it('every lesson includes client coaching in simple language', () => {
+  for (const lesson of LESSONS) {
+   const coach = COACH[lesson.id];
+   expect(coach, lesson.id).toBeDefined();
+   expect(coach.why.length, lesson.id).toBeGreaterThan(20);
+   expect(coach.say.length, lesson.id).toBeGreaterThan(20);
+   expect(coach.why).not.toMatch(/origin|insertion|proximal|distal|diagnosis/i);
+   expect(coach.say).toMatch(/^"/);
   }
  });
 
