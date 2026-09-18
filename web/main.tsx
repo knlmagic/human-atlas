@@ -1,6 +1,8 @@
 import {createRoot} from 'react-dom/client';
 import Home from '../app/page';
+import {startUsageAnalytics} from '../app/usage-analytics';
 import '../app/globals.css';
+startUsageAnalytics();
 createRoot(document.getElementById('root')!).render(<Home/>);
 if ('serviceWorker' in navigator) {
  const hadControllerAtLoad = Boolean(navigator.serviceWorker.controller);

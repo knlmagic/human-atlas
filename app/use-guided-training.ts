@@ -3,6 +3,7 @@ import type {Atlas, Concept, SceneState} from './anatomy';
 import {LESSONS, partsForLesson, type Lesson, type RegionId} from './training';
 import {BEGINNER_FULL_BODY_ROUTINE, clampRoutineStep} from './routine';
 import {loadTrainingProgress, saveTrainingProgress, type TrainingProgress} from './training-progress';
+import {trackUsage} from './usage-analytics';
 
 export type GuideMode = 'explore' | 'menu' | 'routine' | 'discomfort' | 'names';
 
@@ -65,6 +66,7 @@ export function useGuidedTraining({
    storeProgress({...trainingProgress, routine: {stepIndex: 0, completedStepIds: []}});
   }
   setGuideMode('routine');
+  trackUsage('guided_mode_started', {mode: 'routine'});
   focusRoutineStep(nextIndex);
  };
 
@@ -82,7 +84,9 @@ export function useGuidedTraining({
     ...(finished ? {completedAt: new Date().toISOString()} : {}),
    },
   });
+  if (completeCurrent) trackUsage('routine_step_completed', {stepId: current.id});
   if (finished) {
+   trackUsage('routine_completed');
    setGuideMode('menu');
    setRegion(null);
    setSceneState(state => ({
@@ -103,6 +107,7 @@ export function useGuidedTraining({
    ...trainingProgress,
    discomfortExercisesCompleted: trainingProgress.discomfortExercisesCompleted + 1,
   });
+  trackUsage('discomfort_completed');
  };
 
  const clearGuidedScene = () => {
@@ -125,6 +130,12 @@ export function useGuidedTraining({
  const startDiscomfort = () => {
   clearGuidedScene();
   setGuideMode('discomfort');
+  trackUsage('guided_mode_started', {mode: 'discomfort'});
+ };
+
+ const startNames = () => {
+  setGuideMode('names');
+  trackUsage('guided_mode_started', {mode: 'names'});
  };
 
  const leaveGuided = () => {
@@ -141,6 +152,7 @@ export function useGuidedTraining({
   moveRoutine,
   completeDiscomfortExercise,
   startDiscomfort,
+  startNames,
   leaveGuided,
  };
 }
