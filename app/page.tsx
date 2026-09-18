@@ -31,6 +31,7 @@ import {
 import {CAMERA_VIEWS, regionForPart, shouldReframeArea, visibleIdsForStudio} from './studio';
 import {BEGINNER_FULL_BODY_ROUTINE} from './routine';
 import {useGuidedTraining} from './use-guided-training';
+import {trackUsage} from './usage-analytics';
 
 const initial: SceneState = {
  explode: 0,
@@ -59,6 +60,7 @@ export default function Home() {
  const [chosen, setChosen] = useState<Concept | null>(null);
  const [region, setRegion] = useState<RegionId | null>(null);
  const [boot, setBoot] = useState(false);
+ const atlasReadyTracked = useRef(false);
  const {
   guideMode,
   setGuideMode,
@@ -68,6 +70,7 @@ export default function Home() {
   moveRoutine,
   completeDiscomfortExercise,
   startDiscomfort,
+  startNames,
   leaveGuided,
  } = useGuidedTraining({
   atlas,
@@ -149,6 +152,7 @@ export default function Home() {
   setDetails(true);
   setLessonOpen(false);
   setPanel(null);
+  trackUsage('lesson_opened', {lessonId: next.id});
  };
 
  const choose = (c: Concept) => {
@@ -207,6 +211,7 @@ export default function Home() {
    preserveView: keep,
    frame: s.frame + 1,
   }));
+  if (id) trackUsage('region_opened', {regionId: id});
  };
 
  const reset = () => {
@@ -307,7 +312,13 @@ export default function Home() {
      onSelect={choosePart}
      onProgress={n => {
       setProgress(n);
-      if (n === 100) setError('');
+      if (n === 100) {
+       setError('');
+       if (!atlasReadyTracked.current) {
+        atlasReadyTracked.current = true;
+        trackUsage('atlas_ready');
+       }
+      }
      }}
      onError={setError}
     />
@@ -419,7 +430,7 @@ export default function Home() {
      exercisesCompleted={trainingProgress.discomfortExercisesCompleted}
      onRoutine={startRoutine}
      onDiscomfort={startDiscomfort}
-     onNames={() => setGuideMode('names')}
+     onNames={startNames}
      onExit={leaveGuided}
     />
    )}

@@ -1,13 +1,14 @@
 import {useEffect, useState} from 'react';
 import {Share, Smartphone, X} from 'lucide-react';
 import {Button} from '@/components/ui/button';
+import {trackPwaInstalled} from './usage-analytics';
 
 const DISMISS_KEY = 'atlas-install-dismissed';
 
 export default function InstallCoach({ready = true}: {ready?: boolean}) {
  const [show, setShow] = useState(false);
  const [ios, setIos] = useState(false);
- const [promptEvent, setPromptEvent] = useState<{prompt: () => Promise<unknown>} | null>(null);
+ const [promptEvent, setPromptEvent] = useState<InstallPromptEvent | null>(null);
 
  useEffect(() => {
   if (!ready) {
@@ -21,7 +22,7 @@ export default function InstallCoach({ready = true}: {ready?: boolean}) {
   setIos(apple);
   const onPrompt = (event: Event) => {
    event.preventDefault();
-   setPromptEvent(event as Event & {prompt: () => Promise<unknown>});
+   setPromptEvent(event as InstallPromptEvent);
   };
   window.addEventListener('beforeinstallprompt', onPrompt);
   setShow(true);
@@ -35,7 +36,13 @@ export default function InstallCoach({ready = true}: {ready?: boolean}) {
 
  const install = async () => {
   if (!promptEvent) return;
-  await promptEvent.prompt();
+  try {
+   await promptEvent.prompt();
+   const choice = promptEvent.userChoice ? await promptEvent.userChoice : undefined;
+   if (choice?.outcome === 'accepted') trackPwaInstalled();
+  } catch (error) {
+   console.warn('Home screen install was not completed.', error);
+  }
   dismiss();
  };
 
@@ -59,6 +66,11 @@ export default function InstallCoach({ready = true}: {ready?: boolean}) {
    <Button variant="ghost" className="icon-button" onClick={dismiss} aria-label="Dismiss"><X size={16}/></Button>
   </aside>
  );
+}
+
+interface InstallPromptEvent extends Event {
+ prompt: () => Promise<unknown>;
+ userChoice?: Promise<{outcome: 'accepted' | 'dismissed'}>;
 }
 
 declare global {

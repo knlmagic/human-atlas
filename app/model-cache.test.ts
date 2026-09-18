@@ -12,6 +12,7 @@ describe('installed atlas upgrades', () => {
   expect(worker).toContain("const CACHE_VERSION = 'v2'");
   expect(worker).toContain("caches.delete(name)");
   expect(worker).toContain("/^(atlas-shell|anatomy-models)-/");
+  expect(worker).toContain("url.pathname.startsWith('/_vercel/')");
  });
 
  it('checks the network before a cached anatomy manifest', () => {
