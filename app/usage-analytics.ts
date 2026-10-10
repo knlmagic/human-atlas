@@ -1,6 +1,7 @@
 import {inject, track as vercelTrack} from '@vercel/analytics';
 import {LESSONS, REGIONS} from './training';
 import {BEGINNER_FULL_BODY_ROUTINE} from './routine';
+import {PRACTICE_PATTERNS} from './practice-patterns';
 
 /**
  * First-party usage events for massage practice. Page views come from Vercel Web
@@ -15,19 +16,21 @@ export const USAGE_EVENTS = [
  'routine_step_completed',
  'routine_completed',
  'discomfort_completed',
+ 'pattern_started',
  'pwa_installed',
 ] as const;
 
 export type UsageEventName = (typeof USAGE_EVENTS)[number];
 
-export type GuidedModeId = 'routine' | 'discomfort' | 'names';
+export type GuidedModeId = 'routine' | 'discomfort' | 'names' | 'hands';
 
 const USAGE_EVENT_SET = new Set<string>(USAGE_EVENTS);
 const REGION_IDS = new Set<string>(REGIONS.map(region => region.id));
 const LESSON_IDS = new Set<string>(LESSONS.map(lesson => lesson.id));
 const STEP_IDS = new Set(BEGINNER_FULL_BODY_ROUTINE.steps.map(step => step.id));
-const GUIDED_MODES = new Set<string>(['routine', 'discomfort', 'names']);
-const ALLOWED_KEYS = new Set(['regionId', 'lessonId', 'mode', 'stepId']);
+const GUIDED_MODES = new Set<string>(['routine', 'discomfort', 'names', 'hands']);
+const PATTERN_IDS = new Set<string>(PRACTICE_PATTERNS.map(pattern => pattern.id));
+const ALLOWED_KEYS = new Set(['regionId', 'lessonId', 'mode', 'stepId', 'patternId']);
 const SAFE_ID = /^[a-z0-9-]{1,64}$/;
 
 type UsageProperties = Record<string, string>;
@@ -47,6 +50,7 @@ export function sanitizeUsageProperties(properties?: Record<string, unknown>): U
   if (key === 'lessonId' && !LESSON_IDS.has(value)) continue;
   if (key === 'stepId' && !STEP_IDS.has(value)) continue;
   if (key === 'mode' && !GUIDED_MODES.has(value)) continue;
+  if (key === 'patternId' && !PATTERN_IDS.has(value)) continue;
   clean[key] = value;
  }
  return Object.keys(clean).length ? clean : undefined;

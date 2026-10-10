@@ -160,12 +160,14 @@ describe('therapist outcome: learn how to find the muscle and ease it', () => {
   }
  });
 
- it('covers the areas a masseuse actually works, from neck to feet', () => {
+ it('covers the areas a masseuse actually works, from head to feet', () => {
   const byRegion = Object.fromEntries(REGIONS.map(region => [region.id, lessonsForRegion(region.id).length]));
+  expect(byRegion.head).toBeGreaterThanOrEqual(3);
   expect(byRegion.neck).toBeGreaterThanOrEqual(3);
   expect(byRegion.shoulders).toBeGreaterThanOrEqual(3);
   expect(byRegion.back).toBeGreaterThanOrEqual(3);
   expect(byRegion.legs).toBeGreaterThanOrEqual(3);
+  expect(byRegion.feet).toBeGreaterThanOrEqual(3);
  });
 
  it('search uses the names therapists say, not only Latin', () => {
@@ -182,6 +184,7 @@ describe('therapist outcome: follow a guide without losing the body', () => {
   expect(page).toContain('<AnatomyScene');
   expect(page).toContain("guideMode === 'routine'");
   expect(page).toContain("guideMode === 'discomfort'");
+  expect(page).toContain("guideMode === 'hands'");
   expect(styles).toContain('.studio.is-guided .bottom-dock');
   expect(styles).not.toMatch(/\.studio\.is-guided\s+\.scene(?:\s|,|\{)[^}]*display\s*:\s*none/);
  });

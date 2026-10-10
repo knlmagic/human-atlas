@@ -24,6 +24,7 @@ import {
  lessonSequence,
  lessonsForRegion,
  partsForLesson,
+ pathSequence,
  searchTraining,
  type Lesson,
  type RegionId,
@@ -32,6 +33,8 @@ import {CAMERA_VIEWS, regionForPart, shouldReframeArea, visibleIdsForStudio} fro
 import {BEGINNER_FULL_BODY_ROUTINE} from './routine';
 import {useGuidedTraining} from './use-guided-training';
 import {trackUsage} from './usage-analytics';
+import BodyMechanicsGuide from './body-mechanics-guide';
+import {lessonsForPattern, patternById, type PracticePatternId} from './practice-patterns';
 
 const initial: SceneState = {
  explode: 0,
@@ -59,6 +62,7 @@ export default function Home() {
  const [query, setQuery] = useState('');
  const [chosen, setChosen] = useState<Concept | null>(null);
  const [region, setRegion] = useState<RegionId | null>(null);
+ const [patternId, setPatternId] = useState<PracticePatternId | null>(null);
  const [boot, setBoot] = useState(false);
  const atlasReadyTracked = useRef(false);
  const {
@@ -71,6 +75,8 @@ export default function Home() {
   completeDiscomfortExercise,
   startDiscomfort,
   startNames,
+  startHands,
+  focusHandsTip,
   leaveGuided,
  } = useGuidedTraining({
   atlas,
@@ -129,16 +135,18 @@ export default function Home() {
  const selected = selectedParts[0];
  const lesson = chosen ? LESSONS.find(item => item.id === chosen.id) ?? lessonForName(chosen.name) : undefined;
  const activeRegion = REGIONS.find(item => item.id === region) ?? (lesson ? REGIONS.find(item => item.id === lesson.region) : undefined);
- const lessons = region ? lessonsForRegion(region) : [];
+ const pattern = patternById(patternId);
+ const lessons = pattern ? lessonsForPattern(pattern) : (region ? lessonsForRegion(region) : []);
  const results = useMemo(() => (atlas ? searchTraining(atlas, query) : []), [atlas, query]);
  const studying = details && selectedParts.length > 0;
  const showScene = Boolean(atlas && boot);
 
- const chooseLesson = (next: Lesson, ids?: string[]) => {
+ const chooseLesson = (next: Lesson, ids?: string[], keepPattern = false) => {
   if (!atlas) return;
   const elements = ids?.length ? ids : partsForLesson(atlas, next);
   if (!elements.length) return;
   const reframe = shouldReframeArea(region, next.region);
+  if (!keepPattern && !pattern?.lessonIds.includes(next.id)) setPatternId(null);
   setRegion(next.region);
   setChosen({id: next.id, name: next.title, elements});
   setState(s => ({
@@ -197,6 +205,7 @@ export default function Home() {
  const pickRegion = (id: RegionId | null) => {
   const next = REGIONS.find(item => item.id === id);
   const keep = showScene;
+  setPatternId(null);
   setRegion(id);
   setChosen(null);
   setDetails(false);
@@ -214,8 +223,25 @@ export default function Home() {
   if (id) trackUsage('region_opened', {regionId: id});
  };
 
+ const startPattern = (id: PracticePatternId | null) => {
+  if (!id) {
+   setPatternId(null);
+   return;
+  }
+  const next = patternById(id);
+  const first = next ? lessonsForPattern(next)[0] : undefined;
+  if (!next || !first) {
+   console.warn('Practice pattern has no mapped lesson.');
+   return;
+  }
+  setPatternId(next.id);
+  trackUsage('pattern_started', {patternId: next.id});
+  chooseLesson(first, undefined, true);
+ };
+
  const reset = () => {
   setRegion(null);
+  setPatternId(null);
   setState(s => ({
    ...initial,
    visible: DEFAULT_VISIBLE,
@@ -243,8 +269,14 @@ export default function Home() {
   setLessonOpen(false);
  };
 
- const lessonNav = lesson ? lessonSequence(lesson.region, lesson.id) : undefined;
- const caption = region
+ const lessonNav = lesson
+  ? (pattern && pattern.lessonIds.includes(lesson.id)
+   ? pathSequence(pattern.lessonIds, lesson.id)
+   : lessonSequence(lesson.region, lesson.id))
+  : undefined;
+ const caption = pattern
+  ? pattern.name
+  : region
   ? activeRegion?.name ?? 'Body area'
   : 'Adult male · massage practice';
 
@@ -342,11 +374,13 @@ export default function Home() {
    </nav>
    {guideMode === 'explore' && <TrainingPanel
     region={region}
+    patternId={patternId}
     lessons={lessons}
     selectedId={lesson?.id}
     onRegion={pickRegion}
+    onPattern={startPattern}
     onLesson={item => chooseLesson(item)}
-    onStartArea={lessons[0] ? () => chooseLesson(lessons[0]) : undefined}
+    onStartArea={lessons[0] ? () => chooseLesson(lessons[0], undefined, Boolean(pattern)) : undefined}
     onClose={() => setPanel(null)}
     mobileOpen={panel === 'layers'}
     phone={phone}
@@ -409,7 +443,9 @@ export default function Home() {
     <span>{caption}</span>
     <span className="caption-line" />
    </div>
-   {phone && !studying && guideMode === 'explore' && <AreaChips region={region} onRegion={pickRegion} />}
+   {phone && !studying && guideMode === 'explore' && (
+    <AreaChips region={region} patternId={patternId} onRegion={pickRegion} onPattern={startPattern} />
+   )}
    <div className="bottom-dock glass">
     <div className="explode-control">
      <div className="explode-label"><label>What to see</label></div>
@@ -431,6 +467,7 @@ export default function Home() {
      onRoutine={startRoutine}
      onDiscomfort={startDiscomfort}
      onNames={startNames}
+     onHands={startHands}
      onExit={leaveGuided}
     />
    )}
@@ -455,6 +492,12 @@ export default function Home() {
    {guideMode === 'names' && (
     <BasicMuscleGuide
      onLesson={item => { setGuideMode('explore'); chooseLesson(item); }}
+     onExit={() => setGuideMode('menu')}
+    />
+   )}
+   {guideMode === 'hands' && (
+    <BodyMechanicsGuide
+     onTip={focusHandsTip}
      onExit={() => setGuideMode('menu')}
     />
    )}

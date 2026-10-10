@@ -72,7 +72,7 @@ function inRegionBox(part: Part, region: Region) {
   return true;
 }
 
-const SKIP_REGION = /eye|tongue|tooth|teeth|mandible|maxilla|nasal|hyoid|cricoid|arytenoid|vocal|cochlea|brain|ventricle|myocard/i;
+const SKIP_REGION = /eye|tongue|tooth|teeth|mandible|maxilla|nasal|hyoid|cricoid|arytenoid|vocal|cochlea|brain|ventricle|myocard|palpebrae|palatini|uvular|glossus|velum/i;
 
 export const INTRO_REGIONS: RegionId[] = ['neck', 'shoulders', 'back'];
 
@@ -113,15 +113,18 @@ export function chunksForParts(atlas: Atlas, ids: string[] | null) {
  return [...new Set(atlas.parts.filter(part => ids.includes(part.id)).map(part => part.chunk))];
 }
 
-export function lessonSequence(region: RegionId, id: string) {
- const list = lessonsForRegion(region);
- const index = list.findIndex(item => item.id === id);
+export function pathSequence(ids: string[], id: string) {
+ const index = ids.findIndex(item => item === id);
  return {
   index,
-  total: list.length,
-  prev: index > 0 ? list[index - 1] : undefined,
-  next: index >= 0 && index < list.length - 1 ? list[index + 1] : undefined,
+  total: ids.length,
+  prev: index > 0 ? LESSONS.find(item => item.id === ids[index - 1]) : undefined,
+  next: index >= 0 && index < ids.length - 1 ? LESSONS.find(item => item.id === ids[index + 1]) : undefined,
  };
+}
+
+export function lessonSequence(region: RegionId, id: string) {
+ return pathSequence(lessonsForRegion(region).map(item => item.id), id);
 }
 
 export function searchTraining(atlas: Atlas, query: string): Concept[] {

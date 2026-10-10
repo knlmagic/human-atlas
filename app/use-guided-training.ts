@@ -1,11 +1,12 @@
-import {useState, type Dispatch, type SetStateAction} from 'react';
+import {useCallback, useState, type Dispatch, type SetStateAction} from 'react';
 import type {Atlas, Concept, SceneState} from './anatomy';
 import {LESSONS, partsForLesson, type Lesson, type RegionId} from './training';
 import {BEGINNER_FULL_BODY_ROUTINE, clampRoutineStep} from './routine';
 import {loadTrainingProgress, saveTrainingProgress, type TrainingProgress} from './training-progress';
+import {HAND_TIPS} from './body-mechanics';
 import {trackUsage} from './usage-analytics';
 
-export type GuideMode = 'explore' | 'menu' | 'routine' | 'discomfort' | 'names';
+export type GuideMode = 'explore' | 'menu' | 'routine' | 'discomfort' | 'names' | 'hands';
 
 interface GuideDependencies {
  atlas: Atlas | null;
@@ -138,6 +139,32 @@ export function useGuidedTraining({
   trackUsage('guided_mode_started', {mode: 'names'});
  };
 
+ const focusHandsTip = useCallback((index: number) => {
+  const tip = HAND_TIPS[index];
+  const lesson = tip ? LESSONS.find(item => item.id === tip.lessonId) : undefined;
+  const selectedIds = atlas && lesson ? partsForLesson(atlas, lesson) : [];
+  setRegion(lesson?.region ?? null);
+  setChosen(null);
+  setDetails(false);
+  setLessonOpen(false);
+  setPanel(null);
+  setSceneState(state => ({
+   ...state,
+   selected: selectedIds,
+   ghost: selectedIds.length > 0,
+   view: lesson?.region === 'thighs' ? 'three-quarter' : 'back',
+   rotate: false,
+   preserveView: false,
+   frame: state.frame + 1,
+  }));
+ }, [atlas, setRegion, setChosen, setDetails, setLessonOpen, setPanel, setSceneState]);
+
+ const startHands = () => {
+  setGuideMode('hands');
+  trackUsage('guided_mode_started', {mode: 'hands'});
+  focusHandsTip(0);
+ };
+
  const leaveGuided = () => {
   clearGuidedScene();
   setGuideMode('explore');
@@ -153,6 +180,8 @@ export function useGuidedTraining({
   completeDiscomfortExercise,
   startDiscomfort,
   startNames,
+  startHands,
+  focusHandsTip,
   leaveGuided,
  };
 }

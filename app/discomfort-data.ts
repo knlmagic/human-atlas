@@ -31,6 +31,7 @@ export const SAFETY_OPTIONS: {id: SafetyFlag; label: string}[] = [
 ];
 
 export const SAFE_LESSON_BY_REGION: Record<RegionId, string> = {
+ head: 'back-of-head',
  neck: 'upper-traps',
  shoulders: 'infraspinatus',
  back: 'erectors',
@@ -40,4 +41,5 @@ export const SAFE_LESSON_BY_REGION: Record<RegionId, string> = {
  hips: 'glute-med',
  thighs: 'quads',
  legs: 'gastroc',
+ feet: 'sole',
 };

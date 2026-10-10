@@ -1,6 +1,6 @@
 import type {View} from './anatomy';
 
-export type RegionId = 'neck'|'shoulders'|'back'|'chest'|'abdomen'|'arms'|'hips'|'thighs'|'legs';
+export type RegionId = 'head'|'neck'|'shoulders'|'back'|'chest'|'abdomen'|'arms'|'hips'|'thighs'|'legs'|'feet';
 
 export interface Region {
  id: RegionId;
@@ -37,6 +37,15 @@ export interface Lesson {
 export const TRAINING_SYSTEMS = ['skeletal','muscular','connective'] as const;
 
 export const REGIONS: Region[] = [
+ {
+  id: 'head',
+  name: 'Head',
+  hint: 'Work the back of the head and the base of the skull.',
+  view: 'back',
+  caution: 'Do not press the eyes, the ears, or the front of the neck. Stay on the back of the head.',
+  bounds: {y0: 1.49, y1: 1.62, z1: -0.015},
+  extra: ['semispinalis capitis','longissimus capitis','rectus capitis posterior','obliquus capitis'],
+ },
  {
   id: 'neck',
   name: 'Neck',
@@ -111,16 +120,67 @@ export const REGIONS: Region[] = [
  },
  {
   id: 'legs',
-  name: 'Legs & feet',
+  name: 'Lower legs',
   hint: 'Very common in salon and spa work.',
   view: 'three-quarter',
   caution: 'Do not press hard on varicose veins. Go light behind the knee.',
-  bounds: {y0: 0.0, y1: 0.5, x1: 0.18},
-  extra: ['gastrocnemius','soleus','tibialis','fibularis','calcaneus','patella'],
+  bounds: {y0: 0.08, y1: 0.5, x1: 0.18},
+  extra: ['gastrocnemius','soleus','tibialis','fibularis','patella'],
+ },
+ {
+  id: 'feet',
+  name: 'Feet',
+  hint: 'Keep it light. Common in salon and spa work.',
+  view: 'three-quarter',
+  caution: 'Do not press hard on varicose veins or broken skin. Go light on the sole.',
+  bounds: {y0: 0.0, y1: 0.07, x1: 0.2},
+  extra: ['abductor hallucis','flexor hallucis brevis','flexor digitorum brevis','extensor hallucis brevis','flexor accessorius','of left foot','of right foot'],
  },
 ];
 
 export const LESSONS: Lesson[] = [
+ {
+  id: 'back-of-head',
+  region: 'head',
+  title: 'Back of head',
+  also: 'The thick muscle that holds the head up',
+  aliases: ['scalp','back of head','semispinalis capitis','head'],
+  match: {all: ['semispinalis capitis']},
+  does: 'Holds the head up and helps look up.',
+  from: 'The upper back',
+  to: 'The back of the skull',
+  find: 'At the back of the head, on both sides of the midline, above the neck.',
+  work: 'Support the head. Use slow circles, then a long stroke toward the skull. Stay off the spine bones.',
+  careful: 'Do not press the eyes, the ears, or the front of the neck.',
+ },
+ {
+  id: 'base-of-skull',
+  region: 'head',
+  title: 'Base of skull',
+  also: 'The small muscles under the back of the skull',
+  aliases: ['suboccipital','base of skull','occiput','rectus capitis'],
+  match: {any: ['rectus capitis posterior','obliquus capitis']},
+  does: 'Fine-tune how the head sits on the neck.',
+  from: 'The top neck bones',
+  to: 'The base of the skull',
+  find: 'In the hollow under the back of the skull, not on the bone in the middle.',
+  work: 'Cradle the head. Use very light finger circles. Stop if the client feels dizzy.',
+  careful: 'This is a sensitive area. Keep it light. Do not press the front of the neck.',
+ },
+ {
+  id: 'side-of-head',
+  region: 'head',
+  title: 'Side of head',
+  also: 'The muscle from the neck to behind the ear',
+  aliases: ['longissimus capitis','side of head','behind the ear'],
+  match: {all: ['longissimus capitis']},
+  does: 'Helps turn and tip the head.',
+  from: 'The upper back and neck',
+  to: 'The bone behind the ear',
+  find: 'From the side of the neck up toward the bone behind the ear.',
+  work: 'Stroke up toward the skull. Keep off the ear and the jaw joint.',
+  careful: 'Do not press into the ear or the jaw joint.',
+ },
  {
   id: 'scm',
   region: 'neck',
@@ -562,5 +622,47 @@ export const LESSONS: Lesson[] = [
   to: 'The side of the foot',
   find: 'On the outer side of the lower leg, behind the big bone you can feel.',
   work: 'Stroke from below the knee toward the outer ankle.',
+ },
+ {
+  id: 'sole',
+  region: 'feet',
+  title: 'Sole',
+  also: 'The thick muscle in the arch of the foot',
+  aliases: ['sole','plantar','arch','flexor digitorum brevis','foot'],
+  match: {all: ['flexor digitorum brevis']},
+  does: 'Helps curl the toes and support the arch.',
+  from: 'The heel',
+  to: 'The toes',
+  find: 'The firm pad in the middle of the sole, not the heel bone.',
+  work: 'Hold the foot. Use slow strokes from the heel toward the toes. Keep it light.',
+  careful: 'Do not press hard on varicose veins or broken skin. Go light on the sole.',
+ },
+ {
+  id: 'inner-foot',
+  region: 'feet',
+  title: 'Inner foot',
+  also: 'The muscle along the inner arch',
+  aliases: ['abductor hallucis','inner foot','arch','big toe'],
+  match: {all: ['abductor hallucis']},
+  does: 'Helps move the big toe and hold the inner arch.',
+  from: 'The inner heel',
+  to: 'The big toe',
+  find: 'The firm strip along the inner edge of the foot.',
+  work: 'Support the foot. Stroke along the inner arch toward the big toe. Do not yank the toe.',
+  careful: 'Go light if the arch is sore or the skin is thin.',
+ },
+ {
+  id: 'top-of-foot',
+  region: 'feet',
+  title: 'Top of foot',
+  also: 'The small muscle on the top of the foot',
+  aliases: ['extensor hallucis brevis','top of foot','dorsum'],
+  match: {all: ['extensor hallucis brevis']},
+  does: 'Helps lift the big toe.',
+  from: 'The top of the foot',
+  to: 'The big toe',
+  find: 'On the top of the foot, toward the big toe, not on the sharp tendons.',
+  work: 'Very light strokes toward the toes. Stay off the sharp tendons.',
+  careful: 'The top of the foot is bony. Keep pressure very light.',
  },
 ];

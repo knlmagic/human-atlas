@@ -33,8 +33,9 @@ describe('usage analytics privacy filter', () => {
   expect(sanitizeUsageProperties({
    regionId: 'back',
    lessonId: 'lats',
-   mode: 'routine',
+   mode: 'hands',
    stepId: 'prepare',
+   patternId: 'scooter',
    qualities: ['tight', 'burning'],
    flags: ['recent-injury'],
    query: 'traps',
@@ -43,8 +44,9 @@ describe('usage analytics privacy filter', () => {
   })).toEqual({
    regionId: 'back',
    lessonId: 'lats',
-   mode: 'routine',
+   mode: 'hands',
    stepId: 'prepare',
+   patternId: 'scooter',
   });
  });
 
@@ -54,6 +56,7 @@ describe('usage analytics privacy filter', () => {
    lessonId: 'diagnose-pain',
    mode: 'replay',
    stepId: 'secret',
+   patternId: 'diagnose-pain',
    note: 'client said it hurts',
   })).toBeUndefined();
  });
@@ -120,10 +123,11 @@ describe('usage analytics wiring', () => {
   expect(entry).toContain('startUsageAnalytics');
  });
 
- it('records atlas ready, region, and lesson ids from the studio', () => {
+ it('records atlas ready, region, lesson ids, and pattern ids from the studio', () => {
   expect(page).toContain("trackUsage('atlas_ready')");
   expect(page).toContain("trackUsage('region_opened'");
   expect(page).toContain("trackUsage('lesson_opened'");
+  expect(page).toContain("trackUsage('pattern_started'");
   expect(page).not.toMatch(/trackUsage\([^)]*query/);
   expect(page).not.toMatch(/trackUsage\([^)]*chosen\?\.name/);
  });
@@ -132,6 +136,7 @@ describe('usage analytics wiring', () => {
   expect(guided).toContain("trackUsage('guided_mode_started', {mode: 'routine'})");
   expect(guided).toContain("trackUsage('guided_mode_started', {mode: 'discomfort'})");
   expect(guided).toContain("trackUsage('guided_mode_started', {mode: 'names'})");
+  expect(guided).toContain("trackUsage('guided_mode_started', {mode: 'hands'})");
   expect(guided).toContain("trackUsage('routine_step_completed'");
   expect(guided).toContain("trackUsage('routine_completed')");
   expect(guided).toContain("trackUsage('discomfort_completed')");

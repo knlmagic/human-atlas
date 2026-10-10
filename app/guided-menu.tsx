@@ -1,4 +1,4 @@
-import {Activity, BookOpenText, ChevronRight, Route, X} from 'lucide-react';
+import {Activity, BookOpenText, ChevronRight, Hand, Route, X} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 
 interface Props {
@@ -8,10 +8,11 @@ interface Props {
  onRoutine: () => void;
  onDiscomfort: () => void;
  onNames: () => void;
+ onHands: () => void;
  onExit: () => void;
 }
 
-export default function GuidedMenu({routineStep, routineCompleted, exercisesCompleted, onRoutine, onDiscomfort, onNames, onExit}: Props) {
+export default function GuidedMenu({routineStep, routineCompleted, exercisesCompleted, onRoutine, onDiscomfort, onNames, onHands, onExit}: Props) {
  return (
   <aside className="guided-panel guided-menu glass" aria-label="Guided practice">
    <header className="guided-header">
@@ -35,6 +36,11 @@ export default function GuidedMenu({routineStep, routineCompleted, exercisesComp
     <Button variant="ghost" onClick={onNames}>
      <BookOpenText size={20} />
      <span><strong>Basic muscle names</strong><small>Proper names and simple client-friendly names</small></span>
+     <ChevronRight size={18} />
+    </Button>
+    <Button variant="ghost" onClick={onHands}>
+     <Hand size={20} />
+     <span><strong>Save your hands</strong><small>Table height, legs, and forearm — 90 seconds</small></span>
      <ChevronRight size={18} />
     </Button>
     <p className="guided-note">Training only. These guides do not diagnose pain or replace qualified instruction.</p>

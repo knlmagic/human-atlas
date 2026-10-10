@@ -1,5 +1,17 @@
 /** Simple words a masseuse can use with a client. Training only — not a diagnosis. */
 export const COACH: Record<string, {why: string; say: string}> = {
+ 'back-of-head': {
+  why: 'Looking down at a phone or a scooter commute makes the back of the head tired.',
+  say: '"I will support your head and work the back of the skull. Tell me if you feel dizzy."',
+ },
+ 'base-of-skull': {
+  why: 'These small muscles work all day to hold the head still.',
+  say: '"This is very light. Say stop if it feels too much or if you feel odd."',
+ },
+ 'side-of-head': {
+  why: 'Turning the head in traffic or toward a screen loads this side strap.',
+  say: '"I will stroke toward the bone behind the ear, not into the ear."',
+ },
  scm: {
   why: 'Phone posture and looking down for a long time make this strap work hard.',
   say: '"Turn your head a little. I will work the side of the neck, not the front."',
@@ -131,5 +143,17 @@ export const COACH: Record<string, {why: string; say: string}> = {
  fibularis: {
   why: 'Uneven ground and turning the ankle make the outer lower leg work hard.',
   say: '"I will stroke toward the outer ankle. Tell me if the ankle feels unstable."',
+ },
+ sole: {
+  why: 'Standing, walking, and salon floors make the arch tired.',
+  say: '"I will keep this light on the sole. Tell me if a spot feels sharp."',
+ },
+ 'inner-foot': {
+  why: 'The inner arch works with every step, especially in hard shoes.',
+  say: '"I will work the inner edge of the foot and leave the toes alone unless you say it is fine."',
+ },
+ 'top-of-foot': {
+  why: 'Tight shoes and long walks make the top of the foot tender.',
+  say: '"This is bony, so I will stay very light. Say if a tendon feels sharp."',
  },
 };
